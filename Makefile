@@ -2,29 +2,15 @@
 
 SIZE = 640  # in MBytes
 IMAGE_FILE = disk.img
-APKS = /data/fruit-repo/target/packages
+APKS = /data/apks/target/packages
 #APKS = http://dl-4.alpinelinux.org/alpine/v3.6/main
 MACHINE = raspberrypi2
 ARCH = armhf
 
 PACKAGES = \
-	alpine-base \
+	fruit-base \
 	rpi2-boot-linux \
-	mkinitfs \
-	#fruit-base \
-	#rpi2-kernel-modules \
-	#fruit-boot-conf	\
-	#openssh \
-	#openssh-server \
-	#docker \
-	#singularity \
-	#bash \
-	#python \
-	#e2fsprogs \
-	#nfs-utils \
-	#curl \
-	#parted \
-	#btrfs-progs \
+	rpi-firmware \
 
 
 ROOT_DIR1 = $(shell pwd)/rootfs1
@@ -41,6 +27,7 @@ $(IMAGE_FILE):
 
 
 .losetup: $(IMAGE_FILE)
+	@apk add util-linux
 	losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)1 | awk '{print $$3}') * 512)) /dev/loop3 $(IMAGE_FILE)
 	losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)2 | awk '{print $$2}') * 512)) /dev/loop4 $(IMAGE_FILE)
 	#losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)3 | awk '{print $$2}') * 512)) /dev/loop5 $(IMAGE_FILE)
@@ -48,15 +35,16 @@ $(IMAGE_FILE):
 	touch .losetup
 
 
-.rootfs1: .losetup
+.rootfs1:
 	mkdir -p $(ROOT_DIR1)
 	mount /dev/loop4 $(ROOT_DIR1)
 	mkdir -p $(ROOT_DIR1)/boot
 	mount /dev/loop3 $(ROOT_DIR1)/boot
-	apk -X $(APKS) -U --allow-untrusted --root $(ROOT_DIR1) --initdb add $(PACKAGES)
+	mkdir -p $(ROOT_DIR1)/dev $(ROOT_DIR1)/proc $(ROOT_DIR1)/sys
 	mount -o bind /proc $(ROOT_DIR1)/proc
 	mount -o bind /dev $(ROOT_DIR1)/dev
 	mount -o bind /sys $(ROOT_DIR1)/sys
+	apk -X $(APKS) -U --allow-untrusted --root $(ROOT_DIR1) --initdb add $(PACKAGES)
 	chroot $(ROOT_DIR1) /sbin/rc-update add devfs sysinit
 	chroot $(ROOT_DIR1) /sbin/rc-update add dmesg sysinit
 	chroot $(ROOT_DIR1) /sbin/rc-update add mdev sysinit
@@ -77,7 +65,7 @@ $(IMAGE_FILE):
 		echo "ttyS0" >> $(ROOT_DIR1)/etc/securetty; \
 	fi
 
-.rootfs: .rootfs1
+.rootfs: .losetup .rootfs1
 	touch .rootfs
 
 
@@ -89,14 +77,12 @@ boot:
 	cp -f config.txt $(ROOT_DIR1)/boot/
 
 
-$(IMAGE_FILE).gz: clean
+gz: clean.rootfs clean.losetup
 	gzip $(IMAGE_FILE)
 
 
 clean: clean.rootfs clean.losetup
-
-
-cleanall: clean clean.$(IMAGE_FILE)
+	rm -f $(IMAGE_FILE)
 
 
 clean.rootfs:
@@ -115,7 +101,3 @@ clean.losetup:
 	[ "$$(losetup -a | grep '/dev/loop' | grep '5:')" != "" ] && losetup -d /dev/loop5 || true
 	[ "$$(losetup -a | grep '/dev/loop' | grep '6:')" != "" ] && losetup -d /dev/loop6 || true
 	rm -f .losetup
-
-
-clean.$(IMAGE_FILE):
-	rm -f $(IMAGE_FILE)
