@@ -1,4 +1,4 @@
-.PHONY: build boot .mkfs.boot clean cleanall clean.rootfs clean.losetup clean.partition
+.PHONY: build boot clean cleanall clean.rootfs clean.losetup
 
 SIZE = 640  # in MBytes
 IMAGE_FILE = disk.img
@@ -40,16 +40,7 @@ $(IMAGE_FILE):
 	zcat $(TEMPLATE_IMAGE) > $(IMAGE_FILE)
 
 
-.partition: $(IMAGE_FILE)
-	#parted -s $(IMAGE_FILE) mklabel msdos
-	#parted -s $(IMAGE_FILE) mkpart primary fat32 8192s 42MB
-	#parted -s $(IMAGE_FILE) mkpart primary ext4 50MB 264MB
-	#parted -s $(IMAGE_FILE) mkpart primary ext4 272MB 484MB
-	#parted -s $(IMAGE_FILE) mkpart primary btrfs 512MB 100%
-	touch .partition
-
-
-.losetup: .partition
+.losetup: $(IMAGE_FILE)
 	losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)1 | awk '{print $$3}') * 512)) /dev/loop3 $(IMAGE_FILE)
 	losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)2 | awk '{print $$2}') * 512)) /dev/loop4 $(IMAGE_FILE)
 	#losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)3 | awk '{print $$2}') * 512)) /dev/loop5 $(IMAGE_FILE)
@@ -57,13 +48,8 @@ $(IMAGE_FILE):
 	touch .losetup
 
 
-.mkfs.boot: .losetup
-	#mkfs.vfat /dev/loop3
-
-
 .rootfs1: .losetup
 	mkdir -p $(ROOT_DIR1)
-	#mkfs.ext4 -F /dev/loop4
 	mount /dev/loop4 $(ROOT_DIR1)
 	mkdir -p $(ROOT_DIR1)/boot
 	mount /dev/loop3 $(ROOT_DIR1)/boot
@@ -91,7 +77,7 @@ $(IMAGE_FILE):
 		echo "ttyS0" >> $(ROOT_DIR1)/etc/securetty; \
 	fi
 
-.rootfs: .mkfs.boot .rootfs1
+.rootfs: .rootfs1
 	touch .rootfs
 
 
@@ -107,7 +93,7 @@ $(IMAGE_FILE).gz: clean
 	gzip $(IMAGE_FILE)
 
 
-clean: clean.rootfs clean.losetup clean.partition
+clean: clean.rootfs clean.losetup
 
 
 cleanall: clean clean.$(IMAGE_FILE)
@@ -121,7 +107,6 @@ clean.rootfs:
 	if [ $$(mount | grep ' on $(ROOT_DIR1) ' | wc -l) -ne 0 ]; then umount -f $(ROOT_DIR1); fi
 	if [ -e $(ROOT_DIR1) ]; then rmdir $(ROOT_DIR1); fi
 	rm -f .rootfs
-	rm -f .mkfs.boot
 
 
 clean.losetup:
@@ -130,10 +115,6 @@ clean.losetup:
 	[ "$$(losetup -a | grep '/dev/loop' | grep '5:')" != "" ] && losetup -d /dev/loop5 || true
 	[ "$$(losetup -a | grep '/dev/loop' | grep '6:')" != "" ] && losetup -d /dev/loop6 || true
 	rm -f .losetup
-
-
-clean.partition:
-	rm -f .partition
 
 
 clean.$(IMAGE_FILE):
