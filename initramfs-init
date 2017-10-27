@@ -1,0 +1,244 @@
+#!/bin/sh
+
+# this is the init script version
+VERSION=0.1.0
+SINGLEMODE=no
+sysroot=/sysroot
+
+##### start of helper functions #####
+
+# determine the default interface to use if ip=dhcp is set
+# uses the first "eth" interface.
+ip_choose_if() {
+	for x in /sys/class/net/eth*; do
+		[ -e "$x" ] && echo ${x##*/} && return
+	done
+}
+
+# ip_set <device> <ip> <netmask> <gateway-ip>
+ip_set() {
+	ifconfig "$1" "$2" netmask "$3" || return $?
+	if [ -n "$4" ]; then
+		ip route add 0.0.0.0/0 via "$4" dev "$1" || return $?
+	fi
+}
+
+# if "ip=dhcp" is specified on the command line, we obtain an IP address
+# using udhcpc. we do this now and not by enabling kernel-mode DHCP because
+# kernel-model DHCP appears to require that network drivers be built into
+# the kernel rather than as modules. At this point all applicable modules
+# in the initrd should have been loaded.
+#
+# You need af_packet.ko available as well modules for your Ethernet card.
+#
+# Valid syntaxes:
+#   ip=client-ip:server-ip:gw-ip:netmask:hostname:device:autoconf
+#   ip=dhcp
+#   "server-ip" and "hostname" are not supported here.
+# Default (when configure_ip is called without setting ip=):
+#   ip=dhcp
+#
+configure_ip() {
+	[ -n "$MAC_ADDRESS" ] && return
+	local ops=${KOPT_ip:-dhcp}
+	local IFS=':'
+	set -- $ops
+	unset IFS
+	local client_ip="$1"
+	local gw_ip="$3"
+	local netmask="$4"
+	local device="$6"
+	local autoconf="$7"
+	case "$client_ip" in
+		off|none|'') return;;
+		dhcp) autoconf="dhcp";;
+	esac
+
+	[ -n "$device" ] || device=$(ip_choose_if)
+	if [ -z "$device" ]; then
+		echo "ERROR: IP requested but no network device was found"
+		return 1
+	fi
+	if [ "$autoconf" = "dhcp" ]; then
+		# automatic configuration
+		if [ ! -e /usr/share/udhcpc/default.script ]; then
+			echo "ERROR: DHCP requested but not present in initrd"
+			return 1
+		fi
+		ebegin "Obtaining IP via DHCP ($device)..."
+		ifconfig $device 0.0.0.0
+		udhcpc -i $device -f -q
+		eend $?
+	else
+		# manual configuration
+		[ -n "$client_ip" -a -n "$netmask" ] || return
+		ebegin "Setting IP ($device)..."
+		ip_set "$device" "$client_ip" "$netmask" "$gw_ip"
+		eend $?
+	fi
+	MAC_ADDRESS=$(cat /sys/class/net/$device/address)
+}
+
+# setup network block device
+setup_nbd() {
+	modprobe -q nbd max_part=8 || return 1
+	local IFS=, n=0
+	set -- $KOPT_nbd
+	unset IFS
+	for ops; do
+		local server="${ops%:*}"
+		local port="${ops#*:}"
+		local device="/dev/nbd${n}"
+		[ -b "$device" ] || continue
+		nbd-client "$server" "$port" "$device" && n=$((n+1))
+	done
+	[ "$n" != 0 ] || return 1
+}
+
+##### end of helper functions #####
+
+##### main #####
+
+/bin/busybox mkdir -p /usr/bin /usr/sbin /proc /sys /dev $sysroot \
+	/media/cdrom /media/usb /tmp /run
+/bin/busybox --install -s
+
+# basic environment
+export PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+# needed devs
+[ -c /dev/null ] || mknod -m 666 /dev/null c 1 3
+
+# basic mounts
+mount -t proc -o noexec,nosuid,nodev proc /proc
+mount -t sysfs -o noexec,nosuid,nodev sysfs /sys
+
+# read the kernel options. we need surve things like:
+#  acpi_osi="!Windows 2006" xen-pciback.hide=(01:00.0)
+set -- $(cat /proc/cmdline)
+
+myopts="chart debug_init dma init_args modules blacklist quiet
+	root rootfstype rootflags ip overlaytmpfs nbd"
+
+for opt; do
+	case "$opt" in
+	s|single|1)
+		SINGLEMODE=yes
+		continue
+		;;
+	console=*)
+		CONSOLE="$CONSOLE ${opt#console=}"
+		continue
+		;;
+	esac
+
+	for i in $myopts; do
+		case "$opt" in
+		$i=*)	eval "KOPT_${i}=${opt#*=}";;
+		$i)	eval "KOPT_${i}=yes";;
+		no$i)	eval "KOPT_${i}=no";;
+		esac
+	done
+done
+
+[ "$KOPT_quiet" = yes ] || echo "FruitOS Init $VERSION"
+
+# enable debugging if requested
+[ -n "$KOPT_debug_init" ] && set -x
+
+# pick first keymap if found
+for map in /etc/keymap/*; do
+	if [ -f "$map" ]; then
+		ebegin "Setting keymap ${map##*/}"
+		zcat "$map" | loadkmap
+		eend
+		break
+	fi
+done
+
+# start bootcharting if wanted
+if [ "$KOPT_chart" = yes ]; then
+	ebegin "Starting bootchart logging"
+	/sbin/bootchartd start-initfs "$sysroot"
+	eend 0
+fi
+
+# dma can be problematic
+if [ "$KOPT_dma" = no ]; then
+	modprobe libata dma=0
+fi
+
+# hide kernel messages
+[ "$KOPT_quiet" = yes ] && dmesg -n 1
+
+# optional blacklist
+for i in ${KOPT_blacklist/,/ }; do
+	echo "blacklist $i" >> /etc/modprobe.d/boot-opt-blacklist.conf
+done
+
+# setup /dev
+mount -t devtmpfs -o exec,nosuid,mode=0755,size=2M devtmpfs /dev 2>/dev/null \
+	|| mount -t tmpfs -o exec,nosuid,mode=0755,size=2M tmpfs /dev
+[ -d /dev/pts ] || mkdir -m 755 /dev/pts
+[ -c /dev/ptmx ] || mknod -m 666 /dev/ptmx c 5 2
+# make sure /dev/null is setup correctly
+[ -f /dev/null ] && rm -f /dev/null
+[ -c /dev/null ] || mknod -m 666 /dev/null c 1 3
+mount -t devpts -o gid=5,mode=0620,noexec,nosuid devpts /dev/pts
+[ -d /dev/shm ] || mkdir /dev/shm
+mount -t tmpfs -o nodev,nosuid,noexec shm /dev/shm
+
+# load available drivers to get access to modloop media
+modprobe -a $(echo "$KOPT_modules $KOPT_rootfstype" | tr ',' ' ' ) loop squashfs 2> /dev/null
+if [ -f /etc/modules ] ; then
+	sed 's/\#.*//g' < /etc/modules |
+	while read module args; do
+		modprobe -q $module $args
+	done
+fi
+
+# zpool reports /dev/zfs missing if it can't read /etc/mtab
+ln -s /proc/mounts /etc/mtab
+
+if [ "$SINGLEMODE" = "yes" ]; then
+	echo "Entering single mode. Type 'exit' to continue booting."
+	sh
+fi
+
+# mount root
+KOPT_root=${KOPT_root:-/dev/mmcblk0p2}
+if [ "$KOPT_overlaytmpfs" = "yes" ]; then
+	mkdir -p /media/root-ro /media/root-rw $sysroot/media/root-ro \
+		$sysroot/media/root-rw
+	mount -o ro $KOPT_root /media/root-ro
+	mount -t tmpfs root-tmpfs /media/root-rw
+	mkdir -p /media/root-rw/work /media/root-rw/root
+	mount -t overlay \
+		-o lowerdir=/media/root-ro,upperdir=/media/root-rw/root,workdir=/media/root-rw/work \
+		overlayfs $sysroot
+else
+	mount ${KOPT_rootfstype:+-t} ${KOPT_rootfstype} \
+		-o ${KOPT_rootflags:-ro} \
+		$KOPT_root $sysroot
+fi
+
+# copy resolv.conf
+! [ -f "$sysroot"/etc/resolv.conf ] && [ -f /etc/resolv.conf ] && \
+  cp -f /etc/resolv.conf "$sysroot"/etc
+
+# move mounted volumes onto new root
+cat /proc/mounts | while read DEV DIR TYPE OPTS ; do
+	if [ "$DIR" != "/" -a "$DIR" != "$sysroot" -a -d "$DIR" ]; then
+		mkdir -p $sysroot/$DIR
+		mount -o move $DIR $sysroot/$DIR
+	fi
+done
+sync
+
+# switch root
+exec /bin/busybox switch_root $sysroot $chart_init /sbin/init $KOPT_init_args
+
+# failover
+echo "initramfs emergency recovery shell launched"
+exec /bin/busybox sh
+reboot
