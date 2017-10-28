@@ -12,6 +12,7 @@ PACKAGES = \
 	rpi-firmware \
 	fruit-baselayout \
 	fruit-keys \
+	fruit-agent \
 	alpine-conf \
 	alpine-keys \
 	apk-tools \
