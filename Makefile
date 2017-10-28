@@ -8,9 +8,32 @@ MACHINE = raspberrypi2
 ARCH = armhf
 
 PACKAGES = \
-	fruit-base \
 	rpi2-boot-linux \
 	rpi-firmware \
+	fruit-baselayout \
+	fruit-keys \
+	alpine-conf \
+	alpine-keys \
+	apk-tools \
+	busybox \
+	busybox-initscripts \
+	busybox-suid \
+	libc-utils \
+	openrc \
+	mkinitfs \
+	openssh \
+	openssh-server \
+	tzdata \
+	kbd-bkeymaps \
+	btrfs-progs \
+	nfs-utils \
+	curl \
+	parted \
+	wireless-tools \
+	wpa_supplicant \
+	dnsmasq \
+	docker \
+	singularity \
 
 
 ROOT_DIR1 = $(shell pwd)/rootfs1
@@ -58,9 +81,6 @@ $(IMAGE_FILE):
 	chroot $(ROOT_DIR1) /sbin/rc-update add mount-ro shutdown
 	chroot $(ROOT_DIR1) /sbin/rc-update add killprocs shutdown
 	chroot $(ROOT_DIR1) /sbin/rc-update add savecache shutdown
-	if [ "$$(grep '^ttyS0' $(ROOT_DIR1)/etc/inittab)" = "" ]; then \
-		echo "ttyS0::respawn:/sbin/getty -L 115200 ttyS0 vt100" >> $(ROOT_DIR1)/etc/inittab; \
-	fi
 	if [ "$$(grep ttyS0 $(ROOT_DIR1)/etc/securetty)" = "" ]; then \
 		echo "ttyS0" >> $(ROOT_DIR1)/etc/securetty; \
 	fi
@@ -78,11 +98,11 @@ boot:
 
 
 gz: clean.rootfs clean.losetup
-	gzip $(IMAGE_FILE)
+	gzip -c $(IMAGE_FILE) > $(IMAGE_FILE).gz
 
 
 clean: clean.rootfs clean.losetup
-	rm -f $(IMAGE_FILE)
+	rm -f $(IMAGE_FILE) $(IMAGE_FILE).gz
 
 
 clean.rootfs:
