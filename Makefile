@@ -72,12 +72,17 @@ $(IMAGE_FILE):
 	chroot $(ROOT_DIR1) /sbin/rc-update add devfs sysinit
 	chroot $(ROOT_DIR1) /sbin/rc-update add dmesg sysinit
 	chroot $(ROOT_DIR1) /sbin/rc-update add mdev sysinit
+	chroot $(ROOT_DIR1) /sbin/rc-update add hwdrivers sysinit
 	chroot $(ROOT_DIR1) /sbin/rc-update add hwclock boot
 	chroot $(ROOT_DIR1) /sbin/rc-update add modules boot
 	chroot $(ROOT_DIR1) /sbin/rc-update add sysctl boot
 	chroot $(ROOT_DIR1) /sbin/rc-update add hostname boot
 	chroot $(ROOT_DIR1) /sbin/rc-update add bootmisc boot
 	chroot $(ROOT_DIR1) /sbin/rc-update add syslog boot
+	chroot $(ROOT_DIR1) /sbin/rc-update add networking boot
+	chroot $(ROOT_DIR1) /sbin/rc-update add sshd default
+	chroot $(ROOT_DIR1) /sbin/rc-update add ntpd default
+	chroot $(ROOT_DIR1) /sbin/rc-update add crond default
 	chroot $(ROOT_DIR1) /sbin/rc-update add local default
 	chroot $(ROOT_DIR1) /sbin/rc-update add mount-ro shutdown
 	chroot $(ROOT_DIR1) /sbin/rc-update add killprocs shutdown
