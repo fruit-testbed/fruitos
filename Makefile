@@ -1,14 +1,14 @@
-.PHONY: build boot clean cleanall clean.rootfs clean.losetup
+.PHONY: build build.img rootfs clean clean.rootfs clean.losetup
 
-SIZE = 640  # in MBytes
-IMAGE_FILE = disk.img
-APKS = /data/apks/target/packages
-#APKS = http://dl-4.alpinelinux.org/alpine/v3.6/main
-MACHINE = raspberrypi2
-ARCH = armhf
+IMAGE ?= disk.img
+TEMPLATE_IMAGE ?= template-disk.img.gz
+APKS ?= /data/apks/target/packages
+#APKS = https://mgmt.fruit-testbed.org/apks
+MACHINE ?= raspberrypi2
+ARCH ?= armhf
+
 
 PACKAGES = \
-	rpi2-boot-linux \
 	rpi-firmware \
 	fruit-baselayout \
 	fruit-keys \
@@ -36,94 +36,104 @@ PACKAGES = \
 	docker \
 	singularity \
 
+ifeq ($(MACHINE),rpi)
+	MACHINE := raspberrypi
+endif
 
-ROOT_DIR1 = $(shell pwd)/rootfs1
-ROOT_DIR2 = $(shell pwd)/rootfs2
+KERNEL = rpi2
 
-TEMPLATE_IMAGE = template-disk.img.gz
+ifeq ($(MACHINE),raspberrypi)
+	PACKAGES += rpi-boot-linux
+	KERNEL := rpi
+else
+	PACKAGES += rpi2-boot-linux
+endif
 
-build: .rootfs boot
-
-build.gz: build $(IMAGE_FILE).gz
-
-$(IMAGE_FILE):
-	zcat $(TEMPLATE_IMAGE) > $(IMAGE_FILE)
-
-
-.losetup: $(IMAGE_FILE)
-	@apk add util-linux
-	losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)1 | awk '{print $$3}') * 512)) /dev/loop3 $(IMAGE_FILE)
-	losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)2 | awk '{print $$2}') * 512)) /dev/loop4 $(IMAGE_FILE)
-	#losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)3 | awk '{print $$2}') * 512)) /dev/loop5 $(IMAGE_FILE)
-	#losetup -o $$(( $$(fdisk -lu $(IMAGE_FILE) | grep $(IMAGE_FILE)4 | awk '{print $$2}') * 512)) /dev/loop6 $(IMAGE_FILE)
-	touch .losetup
+SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
+	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot \
+	sshd.default ntpd.default crond.default local.default \
+	mount-ro.shutdown killprocs.shutdown savecache.shutdown \
 
 
-.rootfs1:
-	mkdir -p $(ROOT_DIR1)
-	mount /dev/loop4 $(ROOT_DIR1)
-	mkdir -p $(ROOT_DIR1)/boot
-	mount /dev/loop3 $(ROOT_DIR1)/boot
-	mkdir -p $(ROOT_DIR1)/dev $(ROOT_DIR1)/proc $(ROOT_DIR1)/sys
-	mount -o bind /proc $(ROOT_DIR1)/proc
-	mount -o bind /dev $(ROOT_DIR1)/dev
-	mount -o bind /sys $(ROOT_DIR1)/sys
-	apk -X $(APKS) -U --allow-untrusted --root $(ROOT_DIR1) --initdb add $(PACKAGES)
-	chroot $(ROOT_DIR1) /sbin/rc-update add devfs sysinit
-	chroot $(ROOT_DIR1) /sbin/rc-update add dmesg sysinit
-	chroot $(ROOT_DIR1) /sbin/rc-update add mdev sysinit
-	chroot $(ROOT_DIR1) /sbin/rc-update add hwdrivers sysinit
-	chroot $(ROOT_DIR1) /sbin/rc-update add hwclock boot
-	chroot $(ROOT_DIR1) /sbin/rc-update add modules boot
-	chroot $(ROOT_DIR1) /sbin/rc-update add sysctl boot
-	chroot $(ROOT_DIR1) /sbin/rc-update add hostname boot
-	chroot $(ROOT_DIR1) /sbin/rc-update add bootmisc boot
-	chroot $(ROOT_DIR1) /sbin/rc-update add syslog boot
-	chroot $(ROOT_DIR1) /sbin/rc-update add networking boot
-	chroot $(ROOT_DIR1) /sbin/rc-update add sshd default
-	chroot $(ROOT_DIR1) /sbin/rc-update add ntpd default
-	chroot $(ROOT_DIR1) /sbin/rc-update add crond default
-	chroot $(ROOT_DIR1) /sbin/rc-update add local default
-	chroot $(ROOT_DIR1) /sbin/rc-update add mount-ro shutdown
-	chroot $(ROOT_DIR1) /sbin/rc-update add killprocs shutdown
-	chroot $(ROOT_DIR1) /sbin/rc-update add savecache shutdown
-	if [ "$$(grep ttyS0 $(ROOT_DIR1)/etc/securetty)" = "" ]; then \
-		echo "ttyS0" >> $(ROOT_DIR1)/etc/securetty; \
+build: rootfs clean.rootfs clean.losetup
+
+build.gz: build
+	@echo "Compressing $(IMAGE) to $(IMAGE).gz..."
+	@gzip $(IMAGE)
+
+$(IMAGE):
+	@echo "Copying $(TEMPLATE_IMAGE) to $(IMAGE)..."
+	@zcat $(TEMPLATE_IMAGE) > $(IMAGE)
+
+# <image-file>:<partition-number>:<loop-device>:losetup
+# e.g. disk.img:1:loop3:losetup
+%.losetup:
+	@apk add util-linux 1>/dev/null
+	@image=$(shell echo $* | cut -d',' -f1); \
+		partnum=$(shell echo $* | cut -d',' -f2); \
+		loop=$(shell echo $* | cut -d',' -f3); \
+		echo "Attaching $${image}$${partnum} to /dev/$${loop}..."; \
+		losetup -o $$(( $$( fdisk -l $${image} | grep $${image}$${partnum} | awk '{print $$2}' ) * 512 )) /dev/$${loop} $${image}
+
+# <root-device>.<boot-device>.mount
+# e.g. loop4.loop3.mount
+%.mount:
+	@echo "Mounting root & boot devices onto $*..."
+	mkdir -p $*
+	mount /dev/$(shell echo $* | cut -d'-' -f1) $*
+	mkdir -p $*/boot
+	mount /dev/$(shell echo $* | cut -d'-' -f2) $*/boot
+	mkdir -p $*/dev $*/proc $*/sys
+	mount -o bind /proc $*/proc
+	mount -o bind /dev $*/dev
+	mount -o bind /sys $*/sys
+
+# <root-device>.<boot-device>.rootfs
+# e.g. loop4.loop3.rootfs
+%.rootfs:
+	@echo "Installing root filesystem onto $*..."
+	@apk -X $(APKS) -U --allow-untrusted --root $* --initdb add $(PACKAGES)
+	@for svc in $(SERVICES); do \
+		name=$$(echo $$svc | cut -d'.' -f1); \
+		level=$$(echo $$svc | cut -d'.' -f2); \
+		chroot $* /sbin/rc-update add $$name $$level; \
+	done
+	@if [ "$$(grep ttyS0 $*/etc/securetty)" = "" ]; then \
+		echo "ttyS0" >> $*/etc/securetty; \
 	fi
 
-.rootfs: .losetup .rootfs1
-	touch .rootfs
+rootfs: $(IMAGE) \
+	$(IMAGE),1,loop3.losetup \
+	$(IMAGE),2,loop4.losetup \
+	loop4-loop3.mount \
+	loop4-loop3.rootfs \
+	loop4-loop3.boot \
 
 
-boot:
-	cp -f initramfs-init /usr/share/mkinitfs/initramfs-init
-	cp -f mkinitfs.conf /etc/mkinitfs/mkinitfs.conf
-	chroot $(ROOT_DIR1) /sbin/mkinitfs -o /boot/initramfs-rpi2 $$(cat $(ROOT_DIR1)/usr/share/kernel/rpi2/kernel.release)
-	cp -f cmdline.txt $(ROOT_DIR1)/boot/
-	cp -f config.txt $(ROOT_DIR1)/boot/
-
-
-gz: clean.rootfs clean.losetup
-	gzip -c $(IMAGE_FILE) > $(IMAGE_FILE).gz
-
+%.boot: initramfs-init mkinitfs.conf cmdline.txt config.txt
+	@echo "Setting up boot files..."
+	@cp -f initramfs-init $*/usr/share/mkinitfs/initramfs-init
+	@cp -f mkinitfs.conf $*/etc/mkinitfs/mkinitfs.conf
+	@chroot $* /sbin/mkinitfs -o /boot/initramfs-rpi2 $$(cat $*/usr/share/kernel/$(KERNEL)/kernel.release)
+	@cp -f cmdline.txt $*/boot/
+	@cp -f config.txt $*/boot/
 
 clean: clean.rootfs clean.losetup
-	rm -f $(IMAGE_FILE) $(IMAGE_FILE).gz
+	@rm -f $(IMAGE) $(IMAGE).gz
 
+clean.rootfs: loop4-loop3.umount
 
-clean.rootfs:
-	umount -f $(ROOT_DIR1)/dev 1>/dev/null 2>/dev/null || true
-	umount -f $(ROOT_DIR1)/sys 1>/dev/null 2>/dev/null || true
-	umount -f $(ROOT_DIR1)/proc 1>/dev/null 2>/dev/null || true
-	if [ $$(mount | grep ' on $(ROOT_DIR1)/boot ' | wc -l) -ne 0 ]; then umount -f $(ROOT_DIR1)/boot; fi
-	if [ $$(mount | grep ' on $(ROOT_DIR1) ' | wc -l) -ne 0 ]; then umount -f $(ROOT_DIR1); fi
-	if [ -e $(ROOT_DIR1) ]; then rmdir $(ROOT_DIR1); fi
-	rm -f .rootfs
+clean.losetup: clean.3.losetup clean.4.losetup
 
+%.umount:
+	@echo "Unmounting $*..."
+	@umount -f $*/dev 1>/dev/null 2>/dev/null || true
+	@umount -f $*/sys 1>/dev/null 2>/dev/null || true
+	@umount -f $*/proc 1>/dev/null 2>/dev/null || true
+	@if [ "$$(mount | grep '$*/boot ')" != "" ]; then umount -f $*/boot; fi
+	@if [ "$$(mount | grep '$* ')" != "" ]; then umount -f $*; fi
+	@if [ -d $* ]; then rmdir $*; fi
 
-clean.losetup:
-	[ "$$(losetup -a | grep '/dev/loop' | grep '3:')" != "" ] && losetup -d /dev/loop3 || true
-	[ "$$(losetup -a | grep '/dev/loop' | grep '4:')" != "" ] && losetup -d /dev/loop4 || true
-	[ "$$(losetup -a | grep '/dev/loop' | grep '5:')" != "" ] && losetup -d /dev/loop5 || true
-	[ "$$(losetup -a | grep '/dev/loop' | grep '6:')" != "" ] && losetup -d /dev/loop6 || true
-	rm -f .losetup
+clean.%.losetup:
+	@echo "Detaching /dev/loop$*..."
+	@[ "$$(losetup -a | grep '/dev/loop' | grep '$*:')" != "" ] && losetup -d /dev/loop$* || true
