@@ -4,7 +4,7 @@ IMAGE ?= disk.img
 TEMPLATE_IMAGE ?= template-disk.img.gz
 APKS ?= /data/apks/target/packages
 #APKS = https://mgmt.fruit-testbed.org/apks
-MACHINE ?= raspberrypi2
+MACHINE ?= rpi2
 ARCH ?= armhf
 
 
@@ -36,18 +36,13 @@ PACKAGES = \
 	docker \
 	singularity \
 
-ifeq ($(MACHINE),rpi)
-	MACHINE := raspberrypi
-endif
-
-KERNEL = rpi2
-
 ifeq ($(MACHINE),raspberrypi)
-	PACKAGES += rpi-boot-linux
-	KERNEL := rpi
-else
-	PACKAGES += rpi2-boot-linux
+	MACHINE := rpi
+else ifeq ($(MACHINE),raspberrypi2)
+	MACHINE := rpi2
 endif
+
+PACKAGES += $(MACHINE)-boot-linux
 
 SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot \
@@ -59,7 +54,8 @@ build: rootfs clean.rootfs clean.losetup
 
 build.gz: build
 	@echo "Compressing $(IMAGE) to $(IMAGE).gz..."
-	@gzip $(IMAGE)
+	@gzip -c $(IMAGE) > $(IMAGE).gz
+	@rm -f $(IMAGE)
 
 $(IMAGE):
 	@echo "Copying $(TEMPLATE_IMAGE) to $(IMAGE)..."
@@ -114,9 +110,11 @@ rootfs: $(IMAGE) \
 	@echo "Setting up boot files..."
 	@cp -f initramfs-init $*/usr/share/mkinitfs/initramfs-init
 	@cp -f mkinitfs.conf $*/etc/mkinitfs/mkinitfs.conf
-	@chroot $* /sbin/mkinitfs -o /boot/initramfs-rpi2 $$(cat $*/usr/share/kernel/$(KERNEL)/kernel.release)
+	@chroot $* /sbin/mkinitfs -o /boot/initramfs-$(MACHINE) $$(cat $*/usr/share/kernel/$(MACHINE)/kernel.release)
 	@cp -f cmdline.txt $*/boot/
 	@cp -f config.txt $*/boot/
+	@sed -i 's/<kernel>/vmlinux-$(MACHINE)/' $*/boot/config.txt
+	@sed -i 's/<initramfs>/initramfs-$(MACHINE)/' $*/boot/config.txt
 
 clean: clean.rootfs clean.losetup
 	@rm -f $(IMAGE) $(IMAGE).gz

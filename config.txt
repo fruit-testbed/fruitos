@@ -3,6 +3,6 @@ boot_delay=0
 gpu_mem=256
 gpu_mem_256=64
 enable_uart=1
-kernel=vmlinuz-rpi2
-initramfs initramfs-rpi2
+kernel=<kernel>
+initramfs <initramfs>
 include usercfg.txt
