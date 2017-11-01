@@ -1,2 +1,6 @@
 /disk.img*
 /rootfs*
+/rpi.img
+/rpi.img.gz
+/rpi2.img
+/rpi2.img.gz
