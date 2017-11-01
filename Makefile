@@ -1,9 +1,8 @@
 .PHONY: build build.img rootfs clean clean.rootfs clean.losetup
 
 IMAGE ?= disk.img
-TEMPLATE_IMAGE ?= template-disk.img.gz
+TEMPLATE ?= template.img.gz
 APKS ?= /data/apks/target/packages
-#APKS = https://mgmt.fruit-testbed.org/apks
 MACHINE ?= rpi2
 ARCH ?= armhf
 
@@ -58,8 +57,8 @@ build.gz: build
 	@rm -f $(IMAGE)
 
 $(IMAGE):
-	@echo "Copying $(TEMPLATE_IMAGE) to $(IMAGE)..."
-	@zcat $(TEMPLATE_IMAGE) > $(IMAGE)
+	@echo "Copying $(TEMPLATE) to $(IMAGE)..."
+	@zcat $(TEMPLATE) > $(IMAGE)
 
 # <image-file>:<partition-number>:<loop-device>:losetup
 # e.g. disk.img:1:loop3:losetup
@@ -106,14 +105,14 @@ rootfs: $(IMAGE) \
 	loop4-loop3.boot \
 
 
-%.boot: initramfs-init mkinitfs.conf cmdline.txt config.txt
+%.boot: initramfs-init cmdline.txt config.txt
 	@echo "Setting up boot files..."
 	@cp -f initramfs-init $*/usr/share/mkinitfs/initramfs-init
-	@cp -f mkinitfs.conf $*/etc/mkinitfs/mkinitfs.conf
-	@chroot $* /sbin/mkinitfs -o /boot/initramfs-$(MACHINE) $$(cat $*/usr/share/kernel/$(MACHINE)/kernel.release)
+	@chroot $* /sbin/mkinitfs -o /boot/initramfs-$(MACHINE) \
+		$$(cat $*/usr/share/kernel/$(MACHINE)/kernel.release)
 	@cp -f cmdline.txt $*/boot/
 	@cp -f config.txt $*/boot/
-	@sed -i 's/<kernel>/vmlinux-$(MACHINE)/' $*/boot/config.txt
+	@sed -i 's/<kernel>/vmlinuz-$(MACHINE)/' $*/boot/config.txt
 	@sed -i 's/<initramfs>/initramfs-$(MACHINE)/' $*/boot/config.txt
 
 clean: clean.rootfs clean.losetup
