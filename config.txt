@@ -3,6 +3,5 @@ boot_delay=0
 gpu_mem=256
 gpu_mem_256=64
 enable_uart=1
-kernel=<kernel>
-initramfs <initramfs>
+kernel=u-boot.bin
 include usercfg.txt
