@@ -40,5 +40,9 @@ setenv bootargs 8250.nr_uarts=1 console=ttyAMA0,115200 console=tty1 noquite logl
 fatload mmc 0:1 0x2000000 ${fdtfile};
 ext4load mmc ${root_part} ${kernel_addr_r} ${boot_prefix}/${kernel};
 ext4load mmc ${root_part} ${ramdisk_addr_r} ${boot_prefix}/${ramdisk};
-bootz ${kernel_addr_r} ${ramdisk_addr_r} 0x2000000;
-reset;
+if bootz ${kernel_addr_r} ${ramdisk_addr_r} 0x2000000;
+then
+	true;
+else
+	reset;
+fi;
