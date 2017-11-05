@@ -17,9 +17,10 @@ setenv kernel vmlinuz;
 setenv ramdisk initramfs;
 setenv boot_prefix /boot;
 setenv env_file boot-root.env;
-if fatload mmc 0:1 0x200000 ${env_file};
+setenv env_addr_r 0x3000000;
+if fatload mmc 0:1 ${env_addr_r} ${env_file};
 then
-	env import -t 0x200000;
+	env import -t ${env_addr_r};
 	if test "${root_dev}" = "/dev/mmcblk0p2";
 	then
 		setenv root_dev /dev/mmcblk0p3;
@@ -32,10 +33,11 @@ else
 	setenv root_dev /dev/mmcblk0p2;
 	setenv root_part "0:2";
 fi;
-env export -t 0x200000 root_dev;
-fatwrite mmc 0:1 0x200000 ${env_file} 24;
+env export -t ${env_addr_r} root_dev;
+fatwrite mmc 0:1 ${env_addr_r} ${env_file} 24;
 setenv bootargs 8250.nr_uarts=1 console=ttyAMA0,115200 console=tty1 noquite loglevel=7 dwc_otg.lpm_enable=0 root=${root_dev} rootfstype=ext4;
 fatload mmc 0:1 0x2000000 ${fdtfile};
 ext4load mmc ${root_part} ${kernel_addr_r} ${boot_prefix}/${kernel};
 ext4load mmc ${root_part} ${ramdisk_addr_r} ${boot_prefix}/${ramdisk};
 bootz ${kernel_addr_r} ${ramdisk_addr_r} 0x2000000;
+reset;
