@@ -17,7 +17,7 @@ setenv kernel vmlinuz;
 setenv ramdisk initramfs;
 setenv boot_prefix /boot;
 setenv env_file boot-root.env;
-setenv env_addr_r 0x3000000;
+setenv env_addr_r ${fdt_addr_r};
 if fatload mmc 0:1 ${env_addr_r} ${env_file};
 then
 	env import -t ${env_addr_r};
