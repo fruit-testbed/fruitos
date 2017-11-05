@@ -33,6 +33,7 @@ else
 	setenv root_dev /dev/mmcblk0p2;
 	setenv root_part "0:2";
 fi;
+mw ${env_addr_r} 0 100;
 env export -t ${env_addr_r} root_dev;
 fatwrite mmc 0:1 ${env_addr_r} ${env_file} 24;
 setenv bootargs 8250.nr_uarts=1 console=ttyAMA0,115200 console=tty1 noquite loglevel=7 dwc_otg.lpm_enable=0 root=${root_dev} rootfstype=ext4;
