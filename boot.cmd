@@ -36,7 +36,7 @@ fi;
 mw ${env_addr_r} 0x20 0x100;
 env export -t ${env_addr_r} root_dev;
 fatwrite mmc 0:1 ${env_addr_r} ${env_file} 24;
-setenv bootargs_default "8250.nr_uarts=1 console=ttyAMA0,115200 console=tty1 noquite loglevel=7 dwc_otg.lpm_enable=0 root=${root_dev} rootfstype=ext4";
+setenv bootargs_default "8250.nr_uarts=1 console=ttyAMA0,115200 console=tty1 noquite panic=5 loglevel=7 dwc_otg.lpm_enable=0 root=${root_dev} rootfstype=ext4";
 if fatload mmc 0:1 ${env_addr_r} nooverlaytmpfs;
 then
 	setenv bootargs ${bootargs_default};
