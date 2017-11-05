@@ -105,6 +105,12 @@ rootfs: $(IMAGE) \
 	loop4-loop3.boot \
 
 
+uboot: boot.cmd
+	@echo "Setting up U-Boot..."
+	@apk add uboot-tools 1>/dev/null
+	mkimage -C none -A arm -T script -d boot.cmd boot.scr
+
+
 %.boot: initramfs-init cmdline.txt config.txt
 	@echo "Setting up boot files..."
 	@cp -f initramfs-init $*/usr/share/mkinitfs/initramfs-init
