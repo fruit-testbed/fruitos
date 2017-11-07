@@ -98,23 +98,12 @@ $(IMAGE):
 		echo "ttyS0" >> $*/etc/securetty; \
 	fi
 
-%.boot: initramfs-init
-	@echo "Setting up boot files..."
-	@apk -q add uboot-tools
-	@cp -f initramfs-init $*/usr/share/mkinitfs/initramfs-init
-	@chroot $* /sbin/mkinitfs -o /boot/initramfs-$(MACHINE) \
-		$$(cat $*/usr/share/kernel/$(MACHINE)/kernel.release)
-	@mkimage -A arm -T ramdisk -C none -n initramfs \
-		-d $*/boot/initramfs-$(MACHINE) $*/boot/initramfs
-	@rm -f $*/boot/initramfs-$(MACHINE)
-
 
 rootfs: $(IMAGE) \
 	$(IMAGE),1,loop3.losetup \
 	$(IMAGE),2,loop4.losetup \
 	loop4-loop3.mount \
 	loop4-loop3.rootfs \
-	loop4-loop3.boot \
 
 
 clean: clean.rootfs clean.losetup
