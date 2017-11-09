@@ -7,12 +7,21 @@ MACHINE ?= rpi2
 ARCH ?= armhf
 
 
+ifeq ($(MACHINE),raspberrypi)
+	MACHINE := rpi
+else ifeq ($(MACHINE),raspberrypi2)
+	MACHINE := rpi2
+endif
+
 PACKAGES = \
+	fruit-$(MACHINE)-linux \
 	rpi-firmware \
+	fruit-rpi-bootloader \
+	fruit-u-boot \
+	fruit-initramfs \
 	fruit-baselayout \
 	fruit-keys \
 	fruit-agent \
-	fruit-u-boot \
 	alpine-conf \
 	alpine-keys \
 	apk-tools \
@@ -35,14 +44,6 @@ PACKAGES = \
 	dnsmasq \
 	docker \
 	singularity \
-
-ifeq ($(MACHINE),raspberrypi)
-	MACHINE := rpi
-else ifeq ($(MACHINE),raspberrypi2)
-	MACHINE := rpi2
-endif
-
-PACKAGES += $(MACHINE)-boot-linux
 
 SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot \
@@ -71,8 +72,8 @@ $(IMAGE):
 		echo "Attaching $${image}$${partnum} to /dev/$${loop}..."; \
 		losetup -o $$(( $$( fdisk -l $${image} | grep $${image}$${partnum} | awk '{print $$2}' ) * 512 )) /dev/$${loop} $${image}
 
-# <root-device>.<boot-device>.mount
-# e.g. loop4.loop3.mount
+# <root-device>-<boot-device>.mount
+# e.g. loop4-loop3.mount
 %.mount:
 	@echo "Mounting root & boot devices onto $*..."
 	mkdir -p $*
@@ -84,8 +85,8 @@ $(IMAGE):
 	mount -o bind /dev $*/dev
 	mount -o bind /sys $*/sys
 
-# <root-device>.<boot-device>.rootfs
-# e.g. loop4.loop3.rootfs
+# <root-device>-<boot-device>.rootfs
+# e.g. loop4-loop3.rootfs
 %.rootfs:
 	@echo "Installing root filesystem onto $*..."
 	@apk -X $(APKS) -U --allow-untrusted --root $* --initdb add $(PACKAGES)
@@ -98,12 +99,36 @@ $(IMAGE):
 		echo "ttyS0" >> $*/etc/securetty; \
 	fi
 
+%.initramfs:
+	@echo "Generating U-Boot initramfs..."
+	@chroot $* mkinitfs -o /boot/initramfs-$(MACHINE) \
+		$$(cat $*/usr/share/kernel/$(MACHINE)/kernel.release)
+	@chroot $* mkimage -A arm -T ramdisk -C none -n initramfs \
+		-d /boot/initramfs-$(MACHINE) /boot/initramfs
+	@rm -f $*/boot/initramfs-$(MACHINE)
+
+%.devicetree:
+	@echo "Copying Device Tree files to /media/mmcblk0p1..."
+	@cp -r $*/usr/lib/linux-$$(cat $*/usr/share/kernel/$(MACHINE)/kernel.release)/* \
+		$*/media/mmcblk0p1/
+
+%.clone:
+	@src=/dev/$(shell echo $* | cut -d'-' -f1); \
+		dest=/dev/$(shell echo $* | cut -d'-' -f2); \
+		echo "Cloning $$src to $$dest..."; \
+		result=false; \
+		mount -o remount,ro $$src && dd if=$$src of=$$dest && result=true; \
+		mount -o remount,rw /dev/$(shell echo $* | cut -d'-' -f1); \
+		${result}
 
 rootfs: $(IMAGE) \
 	$(IMAGE),1,loop3.losetup \
 	$(IMAGE),2,loop4.losetup \
 	loop4-loop3.mount \
 	loop4-loop3.rootfs \
+	loop4-loop3.initramfs \
+	$(IMAGE),3,loop5.losetup \
+	loop4-loop5.clone \
 
 
 clean: clean.rootfs clean.losetup
@@ -111,7 +136,7 @@ clean: clean.rootfs clean.losetup
 
 clean.rootfs: loop4-loop3.umount
 
-clean.losetup: clean.3.losetup clean.4.losetup
+clean.losetup: clean.3.losetup clean.4.losetup clean.5.losetup
 
 %.umount:
 	@echo "Unmounting $*..."
