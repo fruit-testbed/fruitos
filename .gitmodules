@@ -1,0 +1,3 @@
+[submodule "apks"]
+	path = apks
+	url = https://github.com/fruit-testbed/apks

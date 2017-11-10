@@ -2,7 +2,7 @@
 
 IMAGE ?= disk.img
 TEMPLATE ?= template.img.gz
-APKS ?= /data/apks/target/packages
+APKS ?= $(shell pwd)/apks/target/packages  # absolute path please!
 MACHINE ?= rpi2
 ARCH ?= armhf
 
@@ -51,12 +51,16 @@ SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	mount-ro.shutdown killprocs.shutdown savecache.shutdown \
 
 
-build: rootfs clean.rootfs clean.losetup
+build: .apks rootfs clean.rootfs clean.losetup
 
 build.gz: build
 	@echo "Compressing $(IMAGE) to $(IMAGE).gz..."
 	@gzip -c $(IMAGE) > $(IMAGE).gz
 	@rm -f $(IMAGE)
+
+.apks:
+	cd apks && make
+	touch .apks
 
 $(IMAGE):
 	@echo "Copying $(TEMPLATE) to $(IMAGE)..."
@@ -131,9 +135,14 @@ rootfs: $(IMAGE) \
 	$(IMAGE),3,loop5.losetup \
 	loop4-loop5.clone \
 
+cleanall: clean clean.apks
 
 clean: clean.rootfs clean.losetup
 	@rm -f $(IMAGE) $(IMAGE).gz
+
+clean.apks:
+	cd apks && make cleanall cleancache
+	rm -f .apks
 
 clean.rootfs: loop4-loop3.umount
 
