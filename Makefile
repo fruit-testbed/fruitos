@@ -127,6 +127,7 @@ rootfs: $(IMAGE) \
 	loop4-loop3.mount \
 	loop4-loop3.rootfs \
 	loop4-loop3.initramfs \
+	loop4-loop3.devicetree \
 	$(IMAGE),3,loop5.losetup \
 	loop4-loop5.clone \
 
