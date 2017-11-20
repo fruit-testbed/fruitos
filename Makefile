@@ -1,6 +1,6 @@
 .PHONY: build build.img rootfs clean clean.rootfs clean.losetup
 
-IMAGE ?= disk.img
+IMAGE ?= fruitos.img
 TEMPLATE ?= template.img.gz
 APKS ?= $(shell pwd)/apks/target/packages  # absolute path please!
 MACHINE ?= rpi2
