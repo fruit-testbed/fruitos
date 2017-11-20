@@ -39,6 +39,7 @@ PACKAGES = \
 	nfs-utils \
 	curl \
 	parted \
+	tlsdate \
 	wireless-tools \
 	wpa_supplicant \
 	dnsmasq \
