@@ -19,7 +19,7 @@ This repository contains files to build FruitOS image.
 	git submodule update
 	```
 
-3. Ensure the following entries available in `/etc/apk/repositories`:
+3. Replace the content of `/etc/apk/repositories` with:
 
 	```
 	http://dl-cdn.alpinelinux.org/alpine/v3.6/main
