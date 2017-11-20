@@ -46,8 +46,8 @@ PACKAGES = \
 	singularity \
 
 SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
-	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot \
-	sshd.default ntpd.default crond.default local.default \
+	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot tlsdate.boot \
+	sshd.default ntpd.default crond.default tlsdated.default local.default \
 	mount-ro.shutdown killprocs.shutdown savecache.shutdown \
 
 
