@@ -22,12 +22,12 @@ This repository contains files to build FruitOS image.
 3. Replace the content of `/etc/apk/repositories` with:
 
 	```
-	http://dl-cdn.alpinelinux.org/alpine/v3.6/main
-	http://dl-cdn.alpinelinux.org/alpine/v3.6/community
-	http://dl-cdn.alpinelinux.org/alpine/edge/testing
+	http://dl-cdn.alpinelinux.org/alpine/v3.7/main
+	http://dl-cdn.alpinelinux.org/alpine/v3.7/community
 	```
 
-4. Copy FruitOS private key into submodule **apks** to sign software packages:
+4. Copy FruitOS private key into submodule **apks** to sign software packages.
+   For example, if `fruit-apk-key.rsa` is the private key file, then invoke:
 
 	```
 	cp fruit-apk-key.rsa apks/
