@@ -1,4 +1,4 @@
-.PHONY: build build.img rootfs clean clean.rootfs clean.losetup
+.PHONY: build build.gz rootfs clean clean.rootfs clean.losetup
 
 IMAGE ?= fruitos.img
 TEMPLATE ?= template.img.gz
@@ -57,16 +57,31 @@ SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	mount-ro.shutdown killprocs.shutdown savecache.shutdown \
 
 
-build: .apks rootfs clean.rootfs clean.losetup
-
-build.gz: build
-	@echo "Compressing $(IMAGE) to $(IMAGE).gz..."
-	@gzip -c $(IMAGE) > $(IMAGE).gz
+build: build.image $(IMAGE).gz $(IMAGE).gz.sha256
 	@rm -f $(IMAGE)
+	@echo "Finished"
+
+build.image: .apks rootfs clean.rootfs clean.losetup
 
 .apks:
 	cd apks && make
 	touch .apks
+
+%.sha256: $*
+	@echo "Generating $*.sha256..."
+	@sha256sum $* > $*.sha256
+
+%.sha512: $*
+	@echo "Generating $*.sha512"
+	@sha512sum $* > $*.sha512
+
+$(IMAGE).gz: $(IMAGE)
+	@echo "Compressing $(IMAGE) to $(IMAGE).gz..."
+	@if [ -f /usr/bin/pigz ]; then \
+		pigz -c $(IMAGE) > $(IMAGE).gz; \
+	else \
+		gzip -c $(IMAGE) > $(IMAGE).gz; \
+	fi
 
 $(IMAGE):
 	@echo "Copying $(TEMPLATE) to $(IMAGE)..."
@@ -143,8 +158,11 @@ rootfs: $(IMAGE) \
 
 cleanall: clean clean.apks
 
-clean: clean.rootfs clean.losetup
+clean: clean.rootfs clean.losetup clean.checksum
 	@rm -f $(IMAGE) $(IMAGE).gz
+
+clean.checksum:
+	@rm -f $(IMAGE).sha256 $(IMAGE).sha512 $(IMAGE).gz.sha256 $(IMAGE).gz.sha512
 
 clean.apks:
 	cd apks && make cleanall cleancache
