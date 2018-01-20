@@ -7,3 +7,5 @@
 /rpi2.img.gz
 /boot.scr
 /.apks
+/*.sha256
+/*.sha512
