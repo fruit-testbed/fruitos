@@ -6,6 +6,11 @@ APKS ?= $(shell pwd)/apks/target/packages  # absolute path please!
 MACHINE ?= rpi2
 ARCH ?= armhf
 
+ALPINE_VERSION ?= 3.7
+ALPINE_REPO = http://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_VERSION)
+ALPINE_MAIN = $(ALPINE_REPO)/main
+ALPINE_COMMUNITY = $(ALPINE_REPO)/community
+
 
 ifeq ($(MACHINE),raspberrypi)
 	MACHINE := rpi
@@ -94,7 +99,7 @@ $(IMAGE):
 # e.g. loop4-loop3.rootfs
 %.rootfs:
 	@echo "Installing root filesystem onto $*..."
-	@apk -X $(APKS) -U --allow-untrusted --root $* --initdb add $(PACKAGES)
+	apk -X $(APKS) -X $(ALPINE_MAIN) -X $(ALPINE_COMMUNITY) -U --allow-untrusted --root $* --initdb add $(PACKAGES)
 	@for svc in $(SERVICES); do \
 		name=$$(echo $$svc | cut -d'.' -f1); \
 		level=$$(echo $$svc | cut -d'.' -f2); \
