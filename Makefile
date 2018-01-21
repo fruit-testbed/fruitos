@@ -71,10 +71,6 @@ build.image: .apks rootfs clean.rootfs clean.losetup
 	@echo "Generating $*.sha256..."
 	@sha256sum $* > $*.sha256
 
-%.sha512: $*
-	@echo "Generating $*.sha512"
-	@sha512sum $* > $*.sha512
-
 $(IMAGE).gz: $(IMAGE)
 	@echo "Compressing $(IMAGE) to $(IMAGE).gz..."
 	@if [ -f /usr/bin/pigz ]; then \
@@ -123,6 +119,7 @@ $(IMAGE):
 	@if [ "$$(grep ttyS0 $*/etc/securetty)" = "" ]; then \
 		echo "ttyS0" >> $*/etc/securetty; \
 	fi
+	@echo "BUILT_TIMESTAMP=$$(date +%s)" >> $*/etc/os-release
 
 %.initramfs:
 	@echo "Generating U-Boot initramfs..."
