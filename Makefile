@@ -81,7 +81,7 @@ $(IMAGE).gz: $(IMAGE)
 
 $(IMAGE):
 	@echo "Copying $(TEMPLATE) to $(IMAGE)..."
-	@zcat $(TEMPLATE) > $(IMAGE)
+	@[ -f /usr/bin/pigz ] && pigz -cd $(TEMPLATE) > $(IMAGE) || zcat $(TEMPLATE) > $(IMAGE)
 
 # <image-file>,<partition-number>,<loop-device>.losetup
 # e.g. disk.img,1,loop3.losetup
@@ -139,7 +139,7 @@ $(IMAGE):
 		dest=/dev/$(shell echo $* | cut -d'-' -f2); \
 		echo "Cloning $$src to $$dest..."; \
 		result=false; \
-		mount -o remount,ro $$src && dd if=$$src of=$$dest && result=true; \
+		mount -o remount,ro $$src && dd if=$$src of=$$dest 2>/dev/null && result=true; \
 		mount -o remount,rw /dev/$(shell echo $* | cut -d'-' -f1); \
 		${result}
 
