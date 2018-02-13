@@ -157,11 +157,12 @@ rootfs: $(IMAGE) \
 
 cleanall: clean clean.apks
 
-clean: clean.rootfs clean.losetup clean.checksum
-	@rm -f $(IMAGE) $(IMAGE).gz
+clean: clean.rootfs clean.losetup
+	@rm -f $(IMAGE)
+	@rm -f $(IMAGE).sha256 $(IMAGE).sha512
 
-clean.checksum:
-	@rm -f $(IMAGE).sha256 $(IMAGE).sha512 $(IMAGE).gz.sha256 $(IMAGE).gz.sha512
+clean.gz:
+	@rm -f $(IMAGE).gz $(IMAGE).gz.sha256 $(IMAGE).gz.sha512
 
 clean.apks:
 	cd apks && make cleanall cleancache
