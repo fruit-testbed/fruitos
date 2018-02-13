@@ -10,7 +10,7 @@ ALPINE_VERSION ?= 3.7
 ALPINE_REPO = http://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_VERSION)
 ALPINE_MAIN = $(ALPINE_REPO)/main
 ALPINE_COMMUNITY = $(ALPINE_REPO)/community
-
+APK = apk -X $(APKS) -X $(ALPINE_MAIN) -X $(ALPINE_COMMUNITY) -U --allow-untrusted
 
 ifeq ($(MACHINE),raspberrypi)
 	MACHINE := rpi
@@ -23,7 +23,6 @@ PACKAGES = \
 	rpi-firmware \
 	fruit-rpi-bootloader \
 	fruit-u-boot \
-	fruit-initramfs \
 	fruit-baselayout \
 	fruit-keys \
 	fruit-agent \
@@ -35,7 +34,6 @@ PACKAGES = \
 	busybox-suid \
 	libc-utils \
 	openrc \
-	mkinitfs \
 	openssh \
 	openssh-server \
 	tzdata \
@@ -112,7 +110,8 @@ $(IMAGE):
 # e.g. loop4-loop3.rootfs
 %.rootfs:
 	@echo "Installing root filesystem onto $*..."
-	apk -X $(APKS) -X $(ALPINE_MAIN) -X $(ALPINE_COMMUNITY) -U --allow-untrusted --root $* --initdb add $(PACKAGES)
+	$(APK) --root $* --initdb add $(PACKAGES)
+	$(APK) --no-script --root $* add fruit-initramfs mkinitfs
 	@for svc in $(SERVICES); do \
 		name=$$(echo $$svc | cut -d'.' -f1); \
 		level=$$(echo $$svc | cut -d'.' -f2); \
