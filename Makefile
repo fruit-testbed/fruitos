@@ -47,6 +47,7 @@ PACKAGES = \
 	wpa_supplicant \
 	dnsmasq \
 	docker \
+	bind-tools \
 	singularity \
 	openvpn \
 	apk-repositories \
@@ -58,7 +59,6 @@ SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 
 
 build: build.image $(IMAGE).gz $(IMAGE).gz.sha256
-	@rm -f $(IMAGE)
 	@echo "Finished"
 
 build.image: .apks rootfs clean.rootfs clean.losetup
