@@ -129,6 +129,7 @@ $(IMAGE):
 		echo "ttyS0" >> $*/etc/securetty; \
 	fi
 	@echo "BUILT_TIMESTAMP=$$(date +%s)" >> $*/etc/os-release
+	@echo "COMMIT=$$(git rev-parse head)" >> $*/etc/os-release
 
 %.initramfs:
 	@echo "Generating U-Boot initramfs..."
