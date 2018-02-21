@@ -58,10 +58,18 @@ SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	mount-ro.shutdown killprocs.shutdown savecache.shutdown \
 
 
-build: build.image $(IMAGE).gz $(IMAGE).gz.sha256
+build: isclean build.image $(IMAGE).gz $(IMAGE).gz.sha256
 	@echo "Finished"
 
 build.image: .apks rootfs clean.rootfs clean.losetup
+
+isclean:
+	@if [ "$$(git diff --shortstat 2> /dev/null | tail -n1)" != "" ]; then \
+		echo "This repository is not clean!"; \
+		false; \
+	else \
+		true; \
+	fi
 
 .apks:
 	cd apks && make
