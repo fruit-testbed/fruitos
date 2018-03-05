@@ -131,7 +131,7 @@ $(IMAGE):
 		echo "ttyS0" >> $*/etc/securetty; \
 	fi
 	@echo "BUILT_TIMESTAMP=$$(date +%s)" >> $*/etc/os-release
-	@echo "COMMIT=$$(git rev-parse head)" >> $*/etc/os-release
+	@echo "COMMIT=$$(git rev-parse HEAD)" >> $*/etc/os-release
 	@curl -o $*/media/mmcblk0p1/fruit.json -sL \
 		https://raw.githubusercontent.com/fruit-testbed/fruit-agent/v$(FRUIT_AGENT_VERSION)/fruit.json
 
