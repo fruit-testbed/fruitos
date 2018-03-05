@@ -12,6 +12,8 @@ ALPINE_MAIN = $(ALPINE_REPO)/main
 ALPINE_COMMUNITY = $(ALPINE_REPO)/community
 APK = apk -X $(APKS) -X $(ALPINE_MAIN) -X $(ALPINE_COMMUNITY) -U --allow-untrusted
 
+FRUIT_AGENT_VERSION ?= 0.0.8
+
 ifeq ($(MACHINE),raspberrypi)
 	MACHINE := rpi
 else ifeq ($(MACHINE),raspberrypi2)
@@ -130,6 +132,8 @@ $(IMAGE):
 	fi
 	@echo "BUILT_TIMESTAMP=$$(date +%s)" >> $*/etc/os-release
 	@echo "COMMIT=$$(git rev-parse head)" >> $*/etc/os-release
+	@curl -o $*/media/mmcblk0p1/fruit.json -sL \
+		https://raw.githubusercontent.com/fruit-testbed/fruit-agent/v$(FRUIT_AGENT_VERSION)/fruit.json
 
 %.initramfs:
 	@echo "Generating U-Boot initramfs..."
