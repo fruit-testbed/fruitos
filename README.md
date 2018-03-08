@@ -45,7 +45,7 @@ A Linux OS distribution for Raspberry Pi, developed based on
 	```
 	make
 	```
-    If everything goes well, then you will find a FruitOS image file: `disk.img`.
+    If everything goes well, then you will find a FruitOS image file: `fruitos.img.gz`.
 
     If you want to build an image for Raspberry Pi Zero, Zero-W, 1, and compute module, then you have to invoke:
 
