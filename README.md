@@ -1,6 +1,13 @@
 # FruitOS
 
-This repository contains files to build FruitOS image.
+A Linux OS distribution for Raspberry Pi, developed based on
+[Alpine Linux](https://alpinelinux.org), featuring:
+
+- A/B Root Partitions
+- Over-the-Air update
+- Remote configuration managements
+- Support Docker and Singularity containers
+- Peer-to-Peer Secure Update (under active development)
 
 
 ## How to build FruitOS image
