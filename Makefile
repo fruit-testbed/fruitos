@@ -12,7 +12,7 @@ ALPINE_MAIN = $(ALPINE_REPO)/main
 ALPINE_COMMUNITY = $(ALPINE_REPO)/community
 APK = apk -X $(APKS) -X $(ALPINE_MAIN) -X $(ALPINE_COMMUNITY) -U --allow-untrusted
 
-FRUIT_AGENT_VERSION ?= 0.0.8
+FRUIT_AGENT_VERSION ?= 0.0.11
 
 ifeq ($(MACHINE),raspberrypi)
 	MACHINE := rpi
