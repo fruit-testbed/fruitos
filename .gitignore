@@ -1,5 +1,5 @@
-/fruitos.img
-/fruitos.img.gz
+/fruitos*.img
+/fruitos*.img.gz
 /rootfs*
 /rpi.img
 /rpi.img.gz
