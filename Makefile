@@ -5,6 +5,7 @@ TEMPLATE ?= template.img.gz
 APKS ?= $(shell pwd)/apks/target/packages  # absolute path please!
 MACHINE ?= rpi2
 ARCH ?= armhf
+VERSION ?= 0.2.3
 
 ALPINE_VERSION ?= 3.7
 ALPINE_REPO = http://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_VERSION)
@@ -64,6 +65,25 @@ build: isclean build.image $(IMAGE).gz $(IMAGE).gz.sha256
 	@echo "Finished"
 
 build.image: .apks rootfs clean.rootfs clean.losetup
+
+release:
+	mkdir -p release
+	IMAGE=release/fruitos-$(VERSION)-raspberrypi1.img MACHINE=rpi make
+	IMAGE=release/fruitos-$(VERSION)-raspberrypi1.img MACHINE=rpi make clean
+	IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img make
+	IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img make clean
+	cd release && ln -sf fruitos-$(VERSION)-raspberrypi1.img.gz fruitos-$(VERSION)-raspberrypi0.img.gz
+	cd release && sha256sum fruitos-$(VERSION)-raspberrypi0.img.gz > fruitos-$(VERSION)-raspberrypi0.img.gz.sha256
+	cd release && ln -sf fruitos-$(VERSION)-raspberrypi2.img.gz fruitos-$(VERSION)-raspberrypi3.img.gz
+	cd release && sha256sum fruitos-$(VERSION)-raspberrypi3.img.gz > fruitos-$(VERSION)-raspberrypi3.img.gz.sha256
+
+rsync: release
+	rsync -avz --delete --progress \
+		-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
+		release/ "fruit@fruit-testbed.org:fruitos/edge/releases/armhf/"
+
+clean.release:
+	rm -rf release
 
 isclean:
 	@if [ "$$(git diff --shortstat 2> /dev/null | tail -n1)" != "" ]; then \

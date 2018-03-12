@@ -9,3 +9,4 @@
 /.apks
 /*.sha256
 /*.sha512
+/release
