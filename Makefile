@@ -11,7 +11,7 @@ ALPINE_VERSION ?= 3.7
 ALPINE_REPO = http://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_VERSION)
 ALPINE_MAIN = $(ALPINE_REPO)/main
 ALPINE_COMMUNITY = $(ALPINE_REPO)/community
-APK = apk -X $(APKS) -X $(ALPINE_MAIN) -X $(ALPINE_COMMUNITY) -U --allow-untrusted
+APK = apk -X "@fruit $(APKS)" -X $(ALPINE_MAIN) -X $(ALPINE_COMMUNITY) -U --allow-untrusted
 
 FRUIT_AGENT_VERSION ?= 0.0.11
 
@@ -49,7 +49,7 @@ PACKAGES = \
 	wireless-tools \
 	wpa_supplicant \
 	dnsmasq \
-	docker \
+	docker@fruit \
 	bind-tools \
 	singularity \
 	openvpn \
