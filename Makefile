@@ -7,11 +7,8 @@ MACHINE ?= rpi2
 ARCH ?= armhf
 VERSION ?= 0.2.3
 
-ALPINE_VERSION ?= 3.7
-ALPINE_REPO = http://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_VERSION)
-ALPINE_MAIN = $(ALPINE_REPO)/main
-ALPINE_COMMUNITY = $(ALPINE_REPO)/community
-APK = apk -X "@fruit $(APKS)" -X $(ALPINE_MAIN) -X $(ALPINE_COMMUNITY) -U --allow-untrusted
+REPO_FILE = $(shell pwd)/repositories
+APK = apk --repositories-file $(REPO_FILE) -U --allow-untrusted
 
 FRUIT_AGENT_VERSION ?= 0.0.11
 
@@ -53,7 +50,7 @@ PACKAGES = \
 	bind-tools \
 	singularity \
 	openvpn \
-	apk-repositories \
+	apk-repositories@fruit \
 
 SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot tlsdate.boot \
