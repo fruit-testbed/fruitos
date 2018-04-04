@@ -5,7 +5,7 @@ TEMPLATE ?= template.img.gz
 APKS ?= $(shell pwd)/apks/target/packages  # absolute path please!
 MACHINE ?= rpi2
 ARCH ?= armhf
-VERSION ?= 0.2.3
+VERSION ?= 0.2.4
 
 REPO_FILE = $(shell pwd)/repositories
 APK = apk --repositories-file $(REPO_FILE) -U --allow-untrusted
