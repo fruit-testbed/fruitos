@@ -70,8 +70,10 @@ release:
 	IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img make
 	IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img make clean
 	cd release && ln -sf fruitos-$(VERSION)-raspberrypi1.img.gz fruitos-$(VERSION)-raspberrypi0.img.gz
-	cd release && sha256sum fruitos-$(VERSION)-raspberrypi0.img.gz > fruitos-$(VERSION)-raspberrypi0.img.gz.sha256
 	cd release && ln -sf fruitos-$(VERSION)-raspberrypi2.img.gz fruitos-$(VERSION)-raspberrypi3.img.gz
+	cd release && sha256sum fruitos-$(VERSION)-raspberrypi0.img.gz > fruitos-$(VERSION)-raspberrypi0.img.gz.sha256
+	cd release && sha256sum fruitos-$(VERSION)-raspberrypi1.img.gz > fruitos-$(VERSION)-raspberrypi1.img.gz.sha256
+	cd release && sha256sum fruitos-$(VERSION)-raspberrypi2.img.gz > fruitos-$(VERSION)-raspberrypi2.img.gz.sha256
 	cd release && sha256sum fruitos-$(VERSION)-raspberrypi3.img.gz > fruitos-$(VERSION)-raspberrypi3.img.gz.sha256
 
 rsync: release
@@ -147,6 +149,8 @@ $(IMAGE):
 	@if [ "$$(grep ttyS0 $*/etc/securetty)" = "" ]; then \
 		echo "ttyS0" >> $*/etc/securetty; \
 	fi
+	@sed -i 's/^VERSION=.*/VERSION="$(VERSION)"/g' /etc/os-release
+	@sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FruitOS v$(VERSION)"/g' /etc/os-release
 	@echo "BUILT_TIMESTAMP=$$(date +%s)" >> $*/etc/os-release
 	@echo "COMMIT=$$(git rev-parse HEAD)" >> $*/etc/os-release
 	@curl -o $*/media/mmcblk0p1/fruit.json -sL \
