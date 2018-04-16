@@ -51,6 +51,8 @@ PACKAGES = \
 	singularity \
 	openvpn \
 	apk-repositories@fruit \
+	avahi \
+	dbus \
 
 SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot tlsdate.boot \
