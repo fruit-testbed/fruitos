@@ -60,7 +60,7 @@ SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	mount-ro.shutdown killprocs.shutdown savecache.shutdown \
 
 
-build: isclean build.image $(IMAGE).gz $(IMAGE).gz.sha256
+build: isclean build.image $(IMAGE).gz $(IMAGE).gz.sha512
 	@echo "Finished"
 
 build.image: .apks rootfs clean.rootfs clean.losetup
@@ -73,10 +73,10 @@ release:
 	IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img make clean
 	cd release && ln -sf fruitos-$(VERSION)-raspberrypi1.img.gz fruitos-$(VERSION)-raspberrypi0.img.gz
 	cd release && ln -sf fruitos-$(VERSION)-raspberrypi2.img.gz fruitos-$(VERSION)-raspberrypi3.img.gz
-	cd release && sha256sum fruitos-$(VERSION)-raspberrypi0.img.gz > fruitos-$(VERSION)-raspberrypi0.img.gz.sha256
-	cd release && sha256sum fruitos-$(VERSION)-raspberrypi1.img.gz > fruitos-$(VERSION)-raspberrypi1.img.gz.sha256
-	cd release && sha256sum fruitos-$(VERSION)-raspberrypi2.img.gz > fruitos-$(VERSION)-raspberrypi2.img.gz.sha256
-	cd release && sha256sum fruitos-$(VERSION)-raspberrypi3.img.gz > fruitos-$(VERSION)-raspberrypi3.img.gz.sha256
+	cd release && sha512sum fruitos-$(VERSION)-raspberrypi0.img.gz > fruitos-$(VERSION)-raspberrypi0.img.gz.sha512
+	cd release && sha512sum fruitos-$(VERSION)-raspberrypi1.img.gz > fruitos-$(VERSION)-raspberrypi1.img.gz.sha512
+	cd release && sha512sum fruitos-$(VERSION)-raspberrypi2.img.gz > fruitos-$(VERSION)-raspberrypi2.img.gz.sha512
+	cd release && sha512sum fruitos-$(VERSION)-raspberrypi3.img.gz > fruitos-$(VERSION)-raspberrypi3.img.gz.sha512
 
 rsync: release
 	rsync -avz --delete --progress \
@@ -98,9 +98,9 @@ isclean:
 	cd apks && make
 	touch .apks
 
-%.sha256: $*
-	@echo "Generating $*.sha256..."
-	@sha256sum $* > $*.sha256
+%.sha512: $*
+	@echo "Generating $*.sha512..."
+	@sha512sum $* > $*.sha512
 
 $(IMAGE).gz: $(IMAGE)
 	@echo "Compressing $(IMAGE) to $(IMAGE).gz..."
@@ -194,10 +194,10 @@ cleanall: clean clean.apks
 
 clean: clean.rootfs clean.losetup
 	@rm -f $(IMAGE)
-	@rm -f $(IMAGE).sha256 $(IMAGE).sha512
+	@rm -f $(IMAGE).sha512 $(IMAGE).sha512
 
 clean.gz:
-	@rm -f $(IMAGE).gz $(IMAGE).gz.sha256 $(IMAGE).gz.sha512
+	@rm -f $(IMAGE).gz $(IMAGE).gz.sha512 $(IMAGE).gz.sha512
 
 clean.apks:
 	cd apks && make cleanall cleancache
