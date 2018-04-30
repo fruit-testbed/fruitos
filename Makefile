@@ -5,12 +5,12 @@ TEMPLATE ?= template.img.gz
 APKS ?= $(shell pwd)/apks/target/packages  # absolute path please!
 MACHINE ?= rpi2
 ARCH ?= armhf
-VERSION ?= 0.3.2
+VERSION ?= 0.3.3
 
 REPO_FILE = $(shell pwd)/repositories
 APK = apk --repositories-file $(REPO_FILE) -U --allow-untrusted
 
-FRUIT_AGENT_VERSION ?= 0.0.23
+FRUIT_AGENT_VERSION ?= 0.0.27
 
 ifeq ($(MACHINE),raspberrypi)
 	MACHINE := rpi
