@@ -57,6 +57,7 @@ PACKAGES = \
 SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot tlsdate.boot \
 	sshd.default ntpd.default crond.default tlsdated.default local.default \
+	dbus.default avahi-daemon.default \
 	mount-ro.shutdown killprocs.shutdown savecache.shutdown \
 
 
