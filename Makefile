@@ -5,12 +5,12 @@ TEMPLATE ?= template.img.gz
 APKS ?= $(shell pwd)/apks/target/packages  # absolute path please!
 MACHINE ?= rpi2
 ARCH ?= armhf
-VERSION ?= 0.3.3
+VERSION ?= 0.4.0
 
 REPO_FILE = $(shell pwd)/repositories
 APK = apk --repositories-file $(REPO_FILE) -U --allow-untrusted
 
-FRUIT_AGENT_VERSION ?= 0.0.27
+FRUIT_AGENT_VERSION ?= 0.0.37
 
 ifeq ($(MACHINE),raspberrypi)
 	MACHINE := rpi
@@ -46,7 +46,7 @@ PACKAGES = \
 	wireless-tools \
 	wpa_supplicant \
 	dnsmasq \
-	docker@fruit \
+	docker \
 	bind-tools \
 	singularity \
 	openvpn \
@@ -83,6 +83,11 @@ rsync: release
 	rsync -avz --delete --progress \
 		-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
 		release/ "fruit@fruit-testbed.org:fruitos/edge/releases/armhf/"
+
+rsync.testing: release
+	rsync -avz --delete --progress \
+		-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
+		release/ "fruit@fruit-testbed.org:fruitos/edge/testing/armhf/"
 
 clean.release:
 	rm -rf release
