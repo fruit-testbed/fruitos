@@ -48,7 +48,6 @@ PACKAGES = \
 	dnsmasq \
 	docker \
 	bind-tools \
-	singularity \
 	openvpn \
 	apk-repositories@fruit \
 	avahi \
@@ -87,7 +86,7 @@ rsync: release
 rsync.testing: release
 	rsync -avz --delete --progress \
 		-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-		release/ "fruit@fruit-testbed.org:fruitos/edge/testing/armhf/"
+		release/ "fruit@fruit-testbed.org:fruitos/edge/testing/images/"
 
 clean.release:
 	rm -rf release
