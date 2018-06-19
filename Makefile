@@ -23,35 +23,7 @@ PACKAGES = \
 	rpi-firmware \
 	fruit-rpi-bootloader \
 	fruit-u-boot \
-	fruit-baselayout \
-	fruit-keys \
-	fruit-agent \
-	alpine-conf \
-	alpine-keys \
-	apk-tools \
-	busybox \
-	busybox-initscripts \
-	busybox-suid \
-	libc-utils \
-	openrc \
-	openssh \
-	openssh-server \
-	tzdata \
-	kbd-bkeymaps \
-	btrfs-progs \
-	nfs-utils \
-	curl \
-	parted \
-	tlsdate \
-	wireless-tools \
-	wpa_supplicant \
-	dnsmasq \
-	docker \
-	bind-tools \
-	openvpn \
-	apk-repositories@fruit \
-	avahi \
-	dbus \
+	fruit \
 
 SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot tlsdate.boot \
