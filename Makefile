@@ -21,6 +21,7 @@ endif
 PACKAGES = \
 	fruit-$(MACHINE)-linux \
 	rpi-firmware \
+	rpi-devicetree \
 	fruit-rpi-bootloader \
 	fruit-u-boot \
 	fruit \
@@ -143,11 +144,6 @@ $(IMAGE):
 		-d /boot/initramfs-$(MACHINE) /boot/initramfs
 	@rm -f $*/boot/initramfs-$(MACHINE)
 
-%.devicetree:
-	@echo "Copying Device Tree files to /media/mmcblk0p1..."
-	@cp -r $*/usr/lib/linux-$$(cat $*/usr/share/kernel/$(MACHINE)/kernel.release)/* \
-		$*/media/mmcblk0p1/
-
 %.clone:
 	@src=/dev/$(shell echo $* | cut -d'-' -f1); \
 		dest=/dev/$(shell echo $* | cut -d'-' -f2); \
@@ -163,7 +159,6 @@ rootfs: $(IMAGE) \
 	loop4-loop3.mount \
 	loop4-loop3.rootfs \
 	loop4-loop3.initramfs \
-	loop4-loop3.devicetree \
 	$(IMAGE),3,loop5.losetup \
 	loop4-loop5.clone \
 
