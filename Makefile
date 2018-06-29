@@ -3,14 +3,12 @@
 IMAGE ?= fruitos.img
 TEMPLATE ?= template.img.gz
 APKS ?= $(shell pwd)/apks/target/packages  # absolute path please!
-MACHINE ?= rpi2
-ARCH ?= armhf
+MACHINE ?= rpi
+ARCH ?= aarch64
 VERSION ?= 0.4.0
 
 REPO_FILE = $(shell pwd)/repositories
 APK = apk --repositories-file $(REPO_FILE) -U --allow-untrusted
-
-FRUIT_AGENT_VERSION ?= 0.0.37
 
 ifeq ($(MACHINE),raspberrypi)
 	MACHINE := rpi
@@ -24,7 +22,37 @@ PACKAGES = \
 	rpi-devicetree \
 	fruit-rpi-bootloader \
 	fruit-u-boot \
-	fruit \
+	alpine-conf \
+	alpine-keys \
+	apk-repositories \
+	apk-tools \
+	avahi \
+	avahi-tools \
+	bind-tools \
+	btrfs-progs \
+	busybox \
+	busybox-initscripts \
+	busybox-suid \
+	curl \
+	dbus \
+	dnsmasq \
+	docker \
+	fruit-agent \
+	fruit-baselayout \
+	fruit-keys \
+	kbd-bkeymaps \
+	libc-utils \
+	openrc \
+	openssh \
+	openssh-server \
+	openvpn \
+	parted \
+	python3 \
+	tlsdate \
+	tzdata \
+	uboot-tools \
+	wireless-tools \
+	wpa_supplicant \
 
 SERVICES = devfs.sysinit dmesg.sysinit mdev.sysinit hwdrivers.sysinit \
 	hwclock.boot modules.boot sysctl.boot hostname.boot bootmisc.boot syslog.boot networking.boot tlsdate.boot \
@@ -54,7 +82,7 @@ release:
 rsync: release
 	rsync -avz --delete --progress \
 		-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-		release/ "fruit@fruit-testbed.org:fruitos/edge/releases/armhf/"
+		release/ "fruit@fruit-testbed.org:fruitos/edge/releases/$(ARCH)/"
 
 rsync.testing: release
 	rsync -avz --delete --progress \
@@ -133,8 +161,7 @@ $(IMAGE):
 	@sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FruitOS v$(VERSION)"/g' /etc/os-release
 	@echo "BUILT_TIMESTAMP=$$(date +%s)" >> $*/etc/os-release
 	@echo "COMMIT=$$(git rev-parse HEAD)" >> $*/etc/os-release
-	@curl -o $*/media/mmcblk0p1/fruit.json -sL \
-		https://raw.githubusercontent.com/fruit-testbed/fruit-agent/v$(FRUIT_AGENT_VERSION)/fruit.json
+	@cp -f $*/usr/share/fruit/fruit.json $*/media/mmcblk0p1/fruit.json
 
 %.initramfs:
 	@echo "Generating U-Boot initramfs..."
