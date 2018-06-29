@@ -1,7 +1,5 @@
 # FruitOS
 
-Latest version: <b>0.3.0</b>.
-
 A lean Linux OS distribution for Raspberry Pi, developed based on
 [Alpine Linux](https://alpinelinux.org), featuring:
 
@@ -9,9 +7,12 @@ A lean Linux OS distribution for Raspberry Pi, developed based on
 - Over-the-Air update
 - Remote configuration managements
 - Support Docker and Singularity containers
-- Peer-to-Peer Secure Update (beta testing)
 
-FruitOS image files can be downloaded from: https://fruit-testbed.org/os/edge/releases/armhf
+FruitOS image files can be downloaded from: https://fruit-testbed.org/os/images
 
 Supported boards:
 - RaspberryPi 1, 2, 3, Zero, Zero-W
+
+Supported architectures:
+- armhf
+- aarch64
