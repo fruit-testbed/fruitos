@@ -2,9 +2,9 @@
 
 1. Clone the repository:
 
-  ```
-  git clone https://github.com/fruit-testbed/fruitos
-  ```
+	```
+	git clone https://github.com/fruit-testbed/fruitos
+	```
 
 2. Install required software:
 
@@ -36,29 +36,27 @@
 
 6. Copy FruitOS public key into host:
 
-  ```
-  cp apks/packages/fruit-keys/fruit-apk-key-20180528.rsa.pub /etc/apk/keys/
-  ```
+	```
+	cp apks/packages/fruit-keys/fruit-apk-key-20180528.rsa.pub /etc/apk/keys/
+	```
 
 7. Build FruitOS images:
 
-  a. For Raspberry Pi **Zero**, **Zero-W**, and **1**:
+	a. For Raspberry Pi **Zero**, **Zero-W**, and **1**:
 
-    ```
-    MACHINE=rpi make
-    ```
+	```
+	MACHINE=rpi make
+	```
 
-  b. For Raspberry Pi **2** and **3 (32-bit)**:
+	b. For Raspberry Pi **2** and **3 (32-bit)**:
 
-    ```
-    MACHINE=rpi2 make
-    ```
+	```
+	MACHINE=rpi2 make
+	```
 
-  The above commands produce an image file `fruitos.img.gz`.
+	The above commands produce an image file `fruitos.img.gz`.
 
 
+## Clean-Up
 
-## Clean-Up
-
-Invoke `make clean`.
-
+Invoke: `make clean`.
