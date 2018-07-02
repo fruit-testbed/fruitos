@@ -80,14 +80,9 @@ release:
 	cd release && sha512sum fruitos-$(VERSION)-raspberrypi3.img.gz > fruitos-$(VERSION)-raspberrypi3.img.gz.sha512
 
 rsync: release
-	rsync -avz --delete --progress \
+	rsync -avz --progress \
 		-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-		release/ "fruit@fruit-testbed.org:fruitos/edge/releases/$(ARCH)/"
-
-rsync.testing: release
-	rsync -avz --delete --progress \
-		-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-		release/ "fruit@fruit-testbed.org:fruitos/edge/testing/images/"
+		release/ "fruit@fruit-testbed.org:fruitos/images/"
 
 clean.release:
 	rm -rf release
