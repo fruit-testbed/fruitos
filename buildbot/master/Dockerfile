@@ -1,4 +1,4 @@
-FROM arm32v6/alpine
+FROM alpine
 
 ENV WORKER_PASSWORD pass
 ENV TOTAL_WORKERS 2
