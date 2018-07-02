@@ -4,7 +4,7 @@ IMAGE ?= fruitos.img
 TEMPLATE ?= template.img.gz
 APKS ?= $(shell pwd)/apks/target/packages  # absolute path please!
 MACHINE ?= rpi
-ARCH ?= aarch64
+ARCH ?= $(shell apk --print-arch)
 VERSION ?= 0.4.0
 
 REPO_FILE = $(shell pwd)/repositories
