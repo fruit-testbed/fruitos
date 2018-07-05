@@ -14,4 +14,4 @@ A lean Linux OS distribution for Raspberry Pi, developed based on
 FruitOS image files can be downloaded from: https://fruit-testbed.org/os/edge/releases/armhf
 
 Supported boards:
-- RaspberryPi 1, 2, 3, Zero, Zero-W
+- RaspberryPi Zero, Zero-W, 1, 2, 3, 3B+
