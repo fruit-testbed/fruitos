@@ -70,10 +70,10 @@ release:
 	mkdir -p release
 	IMAGE=release/fruitos-$(VERSION)-raspberrypi1.img MACHINE=rpi make
 	IMAGE=release/fruitos-$(VERSION)-raspberrypi1.img MACHINE=rpi make clean
-	IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img make
-	IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img make clean
-	cd release && ln -sf fruitos-$(VERSION)-raspberrypi1.img.gz fruitos-$(VERSION)-raspberrypi0.img.gz
-	cd release && ln -sf fruitos-$(VERSION)-raspberrypi2.img.gz fruitos-$(VERSION)-raspberrypi3.img.gz
+	IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img MACHINE=rpi2 make
+	IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img MACHINE=rpi2 make clean
+	cd release && ln fruitos-$(VERSION)-raspberrypi1.img.gz fruitos-$(VERSION)-raspberrypi0.img.gz
+	cd release && ln fruitos-$(VERSION)-raspberrypi2.img.gz fruitos-$(VERSION)-raspberrypi3.img.gz
 	cd release && sha512sum fruitos-$(VERSION)-raspberrypi0.img.gz > fruitos-$(VERSION)-raspberrypi0.img.gz.sha512
 	cd release && sha512sum fruitos-$(VERSION)-raspberrypi1.img.gz > fruitos-$(VERSION)-raspberrypi1.img.gz.sha512
 	cd release && sha512sum fruitos-$(VERSION)-raspberrypi2.img.gz > fruitos-$(VERSION)-raspberrypi2.img.gz.sha512
