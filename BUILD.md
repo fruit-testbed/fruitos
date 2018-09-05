@@ -17,8 +17,8 @@
 3. Replace the content of `/etc/apk/repositories` with:
 
 	```
-	http://dl-cdn.alpinelinux.org/alpine/v3.7/main
-	http://dl-cdn.alpinelinux.org/alpine/v3.7/community
+	http://dl-cdn.alpinelinux.org/alpine/v3.8/main
+	http://dl-cdn.alpinelinux.org/alpine/v3.8/community
 	```
 
 4. Copy FruitOS private key into submodule **apks** to sign software packages.
