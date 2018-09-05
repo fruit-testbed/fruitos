@@ -1,31 +1,33 @@
 # Building FruitOS image
 
-1. Install required software:
-
-	```
-	apk update
-	apk add make git
-	```
-
-2. Initialize and update git submodules
-
-	```
-	git submodule init
-	git submodule update
-	```
-
-3. Replace the content of `/etc/apk/repositories` with:
+1. Replace the content of `/etc/apk/repositories` with:
 
 	```
 	http://dl-cdn.alpinelinux.org/alpine/v3.8/main
 	http://dl-cdn.alpinelinux.org/alpine/v3.8/community
 	```
 
-4. Copy FruitOS private key into submodule **apks** to sign software packages.
-   For example, if `fruit-apk-key.rsa` is the private key file, then invoke:
+2. Install required software:
 
 	```
-	cp fruit-apk-key.rsa apks/
+	apk update
+	apk add make git
+	```
+
+3. Initialize and update git submodules
+
+	```
+	git submodule init
+	git submodule update
+	```
+
+4. Copy FruitOS private and public keys into submodule **apks** to
+   sign software packages. For example, if `fruit-apk-key.rsa` is the
+   private key file and `fruit-apk-key.rsa.pub` is the public key
+   file, then invoke:
+
+	```
+	cp fruit-apk-key.rsa fruit-apk-key.rsa.pub apks/
 	```
 
 5. Build software packages and FruitOS image for Raspberry Pi 2, 3, and compute module 3:
