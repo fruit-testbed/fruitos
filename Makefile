@@ -3,7 +3,7 @@
 IMAGE ?= fruitos.img
 TEMPLATE ?= template.img.gz
 MACHINE ?= rpi
-VERSION ?= 0.5.0pre1
+VERSION ?= $(shell grep '^pkgver=' apks/packages/fruit-baselayout/APKBUILD | cut -d= -f2)
 
 SUDO ?= sudo
 
