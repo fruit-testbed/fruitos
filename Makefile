@@ -75,6 +75,7 @@ $(IMAGE).gz.sha512:
 		VERSION="$(VERSION)" \
 		PACKAGES="$(PACKAGES)" \
 		SERVICES="$(SERVICES)" \
+		DOCKER_ARCH="$(DOCKER_ARCH)" \
 		./pack-image.sh
 
 release:
