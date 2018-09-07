@@ -80,8 +80,11 @@ $(IMAGE).gz.sha512:
 
 release:
 	mkdir -p release
-	$(MAKE) IMAGE=release/fruitos-$(VERSION)-raspberrypi1.img MACHINE=rpi
-	$(MAKE) IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img MACHINE=rpi2
+	$(MAKE) clean.apks
+	DOCKER_ARCH=armhf $(MAKE) IMAGE=release/fruitos-$(VERSION)-raspberrypi1.img MACHINE=rpi
+	DOCKER_ARCH=armhf $(MAKE) IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img MACHINE=rpi2
+	$(MAKE) clean.apks
+	DOCKER_ARCH=aarch64 $(MAKE) IMAGE=release/fruitos-$(VERSION)-raspberrypi3-aarch64.img MACHINE=rpi
 	cd release && rm -f *.img
 	cd release && sudo ln fruitos-$(VERSION)-raspberrypi1.img.gz fruitos-$(VERSION)-raspberrypi0.img.gz
 	cd release && sudo ln fruitos-$(VERSION)-raspberrypi2.img.gz fruitos-$(VERSION)-raspberrypi3.img.gz
