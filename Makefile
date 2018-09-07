@@ -105,7 +105,7 @@ clean:
 	rm -f $(IMAGE).gz.sha512
 
 clean.apks:
-	cd apks && make cleanall cleancache
+	./apks/build-via-docker.sh clean.packages cleantarget cleancache cleanapks
 	rm -f .apks
 
 clean.release:
