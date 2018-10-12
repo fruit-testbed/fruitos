@@ -24,41 +24,44 @@ Supported boards:
     $ pip install fruit-cli
     ```
 
-2. If you do not have an API key, then register your email address:
-
-    ```sh
-    $ fruit-cli register <your-email-address>
-    ```
-    
-    A confirmation email will be sent to your address. Please follow the email's instructions to confirm.
-    After the server receives the confirmation, then another email containing your API key will be sent.
-    Use the API key to complete **fruit-cli** setup.
-    
-    If you forget the API key, then request the server to resend it to your email address:
-    
-    ```sh
-    $ fruit-cli forget-api-key <your-email-address>
-    ```
+2. Register your account by following [the instructions](https://github.com/fruit-testbed/fruit-cli#registering-an-account).
 
 3. Download a [FruitOS image](https://fruit-testbed.org/os/images) that is suitable for your Raspberry Pi,
    and burn it on an SD card using [Etcher](https://etcher.io) or **dd**.
 
-4. Mount the boot partition of SD card (label: FRUITOS, filesystem: FAT32), and open file `fruit.json`
-   with a text editor. Put your API key into field `api_key` and save the change. Close the file and
-   unmount the SD card.
+4. Make a note of your new account's public key by running `fruit-cli
+   account config`. You will need it in the next step.
 
-5. Mount the SD card to your Raspberry Pi, then power it up. If the configurations are correct, then
-   the OS will automatically register the node to the management server. You can check it by listing
-   the registered node using:
-   
+    ```sh
+    $ fruit-cli account config | grep public-key
+    public-key: aNsXAGLzB3C5j-tQSl4McNzVjqeegY4TKbDCeFYCUvc
+    ```
+
+5. Mount the boot partition of the SD card (label: FRUITOS,
+   filesystem: FAT32), and open file `fruit.json` with a text editor.
+   Put your public key into field `public-key` and save the change.
+   Close the file and unmount the SD card.
+
+6. Mount the SD card to your Raspberry Pi, then power it up. If the
+   configurations are correct, then the OS will automatically register
+   the node to the management server. You can check it by listing the
+   registered node using:
+
    ```sh
-   $ fruit-cli list-node
+   $ fruit-cli node list
    ```
-   
-   To get the IP address of your Raspberry Pi:
-   
+
+   To get the IP address of your Raspberry Pi, look at the `network`
+   field of the output of `fruit-cli node monitor`:
+
    ```sh
-   $ fruit-cli monitor --node <pi-node-id> /network
+   $ fruit-cli node monitor --node <pi-node-id>
+   ```
+
+   You can automate this by using a tool such as [`jq`](https://stedolan.github.io/jq/):
+
+   ```sh
+   $ fruit-cli --json node monitor --node <pi-node-id> | jq 'to_entries[].value.network'
    ```
 
 
@@ -71,14 +74,14 @@ Every Raspberry Pi can be accessed through:
 
 2. SSH with public key authentication (password-authentication is disabled). You can use **fruit-cli**
    to add your public key to the management server:
-   
+
    ```sh
-   $ fruit-cli add-ssh-key --keyfile <my-public-key-file>
+   $ fruit-cli key add --keyfile <my-public-key-file>
    ```
-   
+
    Afterwards, the management server will distribute the public key to your Raspberry Pis so that you
    can SSH (username: root):
-   
+
    ```
    $ ssh -i <my-private-key-file> root@<pi-address>
    ```
