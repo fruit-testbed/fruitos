@@ -47,7 +47,7 @@ invoke_command () {
     else
         tmpscript=$(mktemp tmpscript.XXXXXXXXXX)
         echo "$@" > $tmpscript
-        docker run -it --rm -v `pwd`:`pwd` multiarch/alpine:${DOCKER_ARCH}-edge \
+        docker run -it --rm -v `pwd`:`pwd` multiarch/alpine:${DOCKER_ARCH}-${ALPINE_VERSION} \
                /bin/sh -c "cd `pwd`; sh $tmpscript"
         rm -f $tmpscript
     fi
