@@ -4,6 +4,7 @@ IMAGE ?= fruitos.img
 TEMPLATE ?= template.img.gz
 MACHINE ?= rpi
 VERSION ?= $(shell grep '^pkgver=' apks/packages/fruit-baselayout/APKBUILD | cut -d= -f2)
+SHORTVERSION := $(shell echo $(VERSION) | cut -d. -f1-2)
 
 SUDO ?= sudo
 
@@ -79,17 +80,21 @@ $(IMAGE).gz.sha512:
 		./pack-image.sh
 
 release:
-	mkdir -p release
+	mkdir -p release/images
+	mkdir -p release/v$(SHORTVERSION)/armhf
+	mkdir -p release/v$(SHORTVERSION)/aarch64
 	$(MAKE) clean.apks
-	DOCKER_ARCH=armhf $(MAKE) IMAGE=release/fruitos-$(VERSION)-raspberrypi1.img MACHINE=rpi
-	DOCKER_ARCH=armhf $(MAKE) IMAGE=release/fruitos-$(VERSION)-raspberrypi2.img MACHINE=rpi2
+	DOCKER_ARCH=armhf $(MAKE) IMAGE=release/images/fruitos-$(VERSION)-raspberrypi1.img MACHINE=rpi
+	DOCKER_ARCH=armhf $(MAKE) IMAGE=release/images/fruitos-$(VERSION)-raspberrypi2.img MACHINE=rpi2
+	rsync -avH apks/target/packages/armhf/. release/v$(SHORTVERSION)/armhf/.
 	$(MAKE) clean.apks
-	DOCKER_ARCH=aarch64 $(MAKE) IMAGE=release/fruitos-$(VERSION)-raspberrypi3-aarch64.img MACHINE=rpi
-	cd release && rm -f *.img
-	cd release && sudo ln fruitos-$(VERSION)-raspberrypi1.img.gz fruitos-$(VERSION)-raspberrypi0.img.gz
-	cd release && sudo ln fruitos-$(VERSION)-raspberrypi2.img.gz fruitos-$(VERSION)-raspberrypi3.img.gz
-	cd release && sha512sum fruitos-$(VERSION)-raspberrypi0.img.gz > fruitos-$(VERSION)-raspberrypi0.img.gz.sha512
-	cd release && sha512sum fruitos-$(VERSION)-raspberrypi3.img.gz > fruitos-$(VERSION)-raspberrypi3.img.gz.sha512
+	DOCKER_ARCH=aarch64 $(MAKE) IMAGE=release/images/fruitos-$(VERSION)-raspberrypi3-aarch64.img MACHINE=rpi
+	rsync -avH apks/target/packages/aarch64/. release/v$(SHORTVERSION)/aarch64/.
+	cd release/images && rm -f *.img
+	cd release/images && sudo ln fruitos-$(VERSION)-raspberrypi1.img.gz fruitos-$(VERSION)-raspberrypi0.img.gz
+	cd release/images && sudo ln fruitos-$(VERSION)-raspberrypi2.img.gz fruitos-$(VERSION)-raspberrypi3.img.gz
+	cd release/images && sha512sum fruitos-$(VERSION)-raspberrypi0.img.gz > fruitos-$(VERSION)-raspberrypi0.img.gz.sha512
+	cd release/images && sha512sum fruitos-$(VERSION)-raspberrypi3.img.gz > fruitos-$(VERSION)-raspberrypi3.img.gz.sha512
 
 rsync: release
 	rsync -avz --progress \
