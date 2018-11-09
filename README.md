@@ -1,6 +1,6 @@
 # FruitOS
 
-Latest version: <b>0.4</b>.
+Latest version: <b>0.4.0</b>.
 
 A lean Linux OS distribution for Raspberry Pi, developed based on
 [Alpine Linux](https://alpinelinux.org), featuring:
@@ -13,7 +13,14 @@ A lean Linux OS distribution for Raspberry Pi, developed based on
 FruitOS image files can be downloaded from: https://fruit-testbed.org/os/images/
 
 Supported boards:
-- RaspberryPi [Zero](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi0.img.gz), [Zero-W](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi0.img.gz), [1](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi1.img.gz), [2](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi2.img.gz), 3 ([32-bit](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi3.img.gz), [64-bit](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi3-aarch64.img.gz)), 3B+ ([32-bit](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi3.img.gz), [64-bit](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi3-aarch64.img.gz))
+- RaspberryPi [Zero](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi0.img.gz),
+  [Zero-W](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi0.img.gz),
+  [1](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi1.img.gz),
+  [2](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi2.img.gz),
+  3 ([32-bit](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi3.img.gz),
+     [64-bit](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi3-aarch64.img.gz)),
+  3B+ ([32-bit](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi3.img.gz),
+       [64-bit](https://fruit-testbed.org/os/images/fruitos-0.4.0-raspberrypi3-aarch64.img.gz))
 
 
 ## Setup Raspberry Pi
@@ -30,11 +37,11 @@ Supported boards:
    and burn it on an SD card using [Etcher](https://etcher.io) or **dd**.
 
 4. Make a note of your new account's public key by running `fruit-cli
-   account config`. You will need it in the next step.
+   account public-key`. You will need it in the next step.
 
     ```sh
-    $ fruit-cli account config | grep public-key
-    public-key: aNsXAGLzB3C5j-tQSl4McNzVjqeegY4TKbDCeFYCUvc
+    $ fruit-cli account public-key
+    aNsXAGLzB3C5j-tQSl4McNzVjqeegY4TKbDCeFYCUvc
     ```
 
 5. Mount the boot partition of the SD card (label: FRUITOS,
