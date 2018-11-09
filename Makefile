@@ -3,6 +3,7 @@
 IMAGE ?= fruitos.img
 TEMPLATE ?= template.img.gz
 MACHINE ?= rpi
+KEYFILE ?= $(shell pwd)/apks/fruit-apk-key.rsa
 VERSION ?= $(shell grep '^pkgver=' apks/packages/fruit-baselayout/APKBUILD | cut -d= -f2)
 SHORTVERSION := $(shell echo $(VERSION) | cut -d. -f1-2)
 
@@ -102,7 +103,7 @@ rsync: release
 		release/ "fruit@fruit-testbed.org:fruitos/images/"
 
 .apks:
-	./apks/build-via-docker.sh
+	./apks/build-via-docker.sh KEYFILE=$(KEYFILE)
 	touch .apks
 
 cleanall: clean clean.apks
