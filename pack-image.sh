@@ -144,7 +144,7 @@ then
     echo ttyS0 >> ${MOUNTPOINT}/etc/securetty
 fi
 
-sed -i -e 's/^VERSION=.*/VERSION="'"${VERSION}"'"/g' ${MOUNTPOINT}/etc/os-release
+sed -i -e 's/^VERSION=.*/VERSION='"${VERSION}"'/g' ${MOUNTPOINT}/etc/os-release
 sed -i -e 's/^PRETTY_NAME=.*/PRETTY_NAME="FruitOS v'"${VERSION}"'"/g' ${MOUNTPOINT}/etc/os-release
 echo "BUILT_TIMESTAMP=$(date +%s)" >> ${MOUNTPOINT}/etc/os-release
 echo "COMMIT=$(git rev-parse HEAD)" >> ${MOUNTPOINT}/etc/os-release
