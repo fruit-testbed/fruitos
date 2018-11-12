@@ -139,10 +139,15 @@ done
 invoke_command sh ./$tmpbatch
 rm -f $tmpbatch
 
-if grep -vq ttyS0 ${MOUNTPOINT}/etc/securetty
-then
-    echo ttyS0 >> ${MOUNTPOINT}/etc/securetty
-fi
+# Allow root logins on ttyS0 / ttyAMA0
+#
+tmpsecuretty=$(mktemp tmpsecuretty.XXXXXXXXXX)
+cat ${MOUNTPOINT}/etc/securetty | egrep -v '(ttyS0|ttyAMA0)' > $tmpsecuretty
+echo ttyS0 >> $tmpsecuretty
+echo ttyAMA0 >> $tmpsecuretty
+cat $tmpsecuretty > ${MOUNTPOINT}/etc/securetty
+rm -f $tmpsecuretty
+
 
 sed -i -e 's/^VERSION=.*/VERSION='"${VERSION}"'/g' ${MOUNTPOINT}/etc/os-release
 sed -i -e 's/^PRETTY_NAME=.*/PRETTY_NAME="FruitOS v'"${VERSION}"'"/g' ${MOUNTPOINT}/etc/os-release
